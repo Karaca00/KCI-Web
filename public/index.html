@@ -166,7 +166,14 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 .pay-tabs::-webkit-scrollbar{height:3px}
 .pay-tab{flex-shrink:0;padding:8px 16px;border-radius:20px;border:none;background:var(--surface);color:var(--text2);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
 .pay-tab.active{background:linear-gradient(135deg,var(--accent),#6366f1);color:#fff}
-.pay-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.pay-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:16px}
+.pay-controls,.wallet-config{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;box-shadow:0 18px 44px rgba(0,0,0,.22);backdrop-filter:blur(12px)}
+.pay-controls{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pay-controls .input-group,.wallet-config .input-group{margin-bottom:0}
+.pay-meta{font-size:11px;color:var(--text2);margin-top:4px;line-height:1.35}
+.pay-row.incomplete{border-color:rgba(251,191,36,.22)}
+.pay-row.paid{border-color:rgba(52,211,153,.2)}
+.pay-row.unpaid{border-color:rgba(248,113,113,.2)}
 .stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:16px;text-align:center}
 .stat-val{font-size:24px;font-weight:900;color:var(--accent)}
 .stat-lbl{font-size:11px;color:var(--text2);margin-top:3px;font-weight:600}
@@ -462,7 +469,27 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
     <p>Admin ยังไม่เปิดให้ Guest ดูส่วนนี้</p>
   </div>
   <div id="pay-content">
-    <div class="pay-tabs" id="pay-tab-row"></div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="section-head" style="margin-bottom:12px">
+        <span class="section-title">ตัวกรอง</span>
+        <span class="c-muted" id="pay-amount-hint">สัปดาห์ปัจจุบัน</span>
+      </div>
+      <div class="pay-controls">
+        <div class="input-group">
+          <label>สัปดาห์</label>
+          <select id="pay-week-select" onchange="selectPayWeek(this.value)"></select>
+        </div>
+        <div class="input-group">
+          <label>สถานะ</label>
+          <select id="pay-status-filter" onchange="setPayFilter(this.value)">
+            <option value="all">ทั้งหมด</option>
+            <option value="paid">จ่ายแล้ว</option>
+            <option value="unpaid">ยังไม่จ่าย</option>
+            <option value="incomplete">ยังจ่ายไม่ครบ</option>
+          </select>
+        </div>
+      </div>
+    </div>
     <div class="pay-stats" id="pay-stats-row"></div>
     <div class="section-head">
       <span class="section-title">รายชื่อ</span>
@@ -507,9 +534,35 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
   <div class="admin-panel" id="ap-payment">
     <div class="card">
       <div class="section-head" style="margin-bottom:16px"><span class="section-title">✅ บันทึกการจ่ายเงิน</span></div>
+
+      <div class="wallet-config" style="margin-bottom:14px">
+        <div class="input-row">
+          <div class="input-group">
+            <label>สัปดาห์สำหรับตั้งราคา</label>
+            <select id="wallet-week-key" onchange="loadWalletWeekSetting()"></select>
+          </div>
+          <div class="input-group">
+            <label>ค่าต่อสัปดาห์ (฿)</label>
+            <input type="number" id="wallet-week-amount" placeholder="20"/>
+          </div>
+        </div>
+        <div class="input-row">
+          <div class="input-group">
+            <label>ค่าเริ่มต้น (฿)</label>
+            <input type="number" id="wallet-default-amount" placeholder="20"/>
+          </div>
+          <div class="input-group" style="display:flex;align-items:end">
+            <button class="btn btn-outline" style="width:100%" onclick="saveWalletSettings()">💾 บันทึกการตั้งค่า</button>
+          </div>
+        </div>
+        <div class="c-muted" id="wallet-status-note">กำหนดราคาต่อสัปดาห์สำหรับระบบเงินห้อง</div>
+      </div>
+
+      <div class="divider"></div>
+
       <div class="input-row">
         <div class="input-group"><label>เดือน</label>
-          <select id="ap-month">
+          <select id="ap-month" onchange="syncAdminPaymentAmount(true)">
             <option value="1">มกราคม</option><option value="2">กุมภาพันธ์</option>
             <option value="3">มีนาคม</option><option value="4">เมษายน</option>
             <option value="5">พฤษภาคม</option><option value="6">มิถุนายน</option>
@@ -519,14 +572,25 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
           </select>
         </div>
         <div class="input-group"><label>สัปดาห์ที่</label>
-          <select id="ap-week"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select>
+          <select id="ap-week" onchange="syncAdminPaymentAmount(true)"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select>
         </div>
       </div>
+
       <div class="input-row">
-        <div class="input-group"><label>รหัสนักเรียน</label><input type="text" id="ap-sid" placeholder="เช่น 66001"/></div>
-        <div class="input-group"><label>จำนวนเงิน (฿)</label><input type="number" id="ap-amount" placeholder="20"/></div>
+        <div class="input-group">
+          <label>รหัสนักเรียน</label>
+          <input type="text" id="ap-sid" placeholder="เช่น 66001" oninput="syncAdminStudentSelect()"/>
+        </div>
+        <div class="input-group">
+          <label>รายชื่อนักเรียน</label>
+          <select id="ap-student-select" onchange="pickAdminStudent(this.value)"></select>
+        </div>
       </div>
-      <div class="input-group"><label>หมายเหตุ</label><input type="text" id="ap-note" placeholder="ไม่บังคับ"/></div>
+
+      <div class="input-row">
+        <div class="input-group"><label>จำนวนเงิน (฿)</label><input type="number" id="ap-amount" placeholder="20"/></div>
+        <div class="input-group"><label>หมายเหตุ</label><input type="text" id="ap-note" placeholder="ไม่บังคับ"/></div>
+      </div>
       <button class="btn btn-success" onclick="addPayment()">✅ บันทึก</button>
     </div>
     <div class="section-head"><span class="section-title">ประวัติล่าสุด</span></div>
@@ -657,9 +721,11 @@ let SESSION=null;
 let CACHED_REPORT=null;
 let MEMBERS={};
 let PAYMENTS={};
+let SETTINGS={wallet:{defaultAmount:20,weekPrices:{}}};
 let PERMS={class:false,pay:false,history:false};
 let CUR_PAGE='login';
 let CUR_PAY_WEEK=null;
+let CUR_PAY_FILTER='all';
 const MONTHS=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 
 /* ── FIREBASE INIT ── */
@@ -673,18 +739,46 @@ window.addEventListener('firebase-ready',()=>{
 function startListeners(){
   if(!DB) return;
   const{ref,onValue}=FUNS;
+
   onValue(ref(DB,'members'),snap=>{
     MEMBERS=snap.val()||{};
-    renderClassmates();renderPayment();renderMemberAdmin();
+    syncSessionFromMembers();
+    renderClassmates();
+    renderPayment();
+    renderMemberAdmin();
+    renderAdminStudentSelect();
   });
+
   onValue(ref(DB,'payments'),snap=>{
     PAYMENTS=snap.val()||{};
-    renderPayment();renderPayHistoryAdmin();
+    renderPayment();
+    renderPayHistoryAdmin();
+    syncAdminPaymentAmount();
   });
-  onValue(ref(DB,'settings/perms'),snap=>{
-    PERMS=snap.val()||{class:false,pay:false,history:false};
+
+  onValue(ref(DB,'settings'),snap=>{
+    SETTINGS=snap.val()||{};
+    PERMS=SETTINGS.perms||{class:false,pay:false,history:false};
     applyPermsUI();
+    renderWalletSettings();
   });
+}
+
+function syncSessionFromMembers(){
+  if(!SESSION?.username) return;
+  const found=findMemberByStudentId(SESSION.username);
+  if(!found) return;
+  SESSION.memberUid=found.uid;
+  SESSION.role=found.member.role||SESSION.role||'student';
+  SESSION.name=found.member.name||SESSION.name;
+  SESSION.tel=found.member.tel||SESSION.tel;
+  if(found.member.scores) SESSION.scores=found.member.scores;
+  localStorage.setItem('42hub_sess',JSON.stringify(SESSION));
+  updateProfilePanel();
+  updateProfileBtn();
+  const adminBtn=document.getElementById('nav-admin');
+  if(adminBtn) adminBtn.style.display=SESSION.role==='admin'?'flex':'none';
+  if(CUR_PAGE==='admin' && SESSION.role!=='admin') goPage('home');
 }
 
 /* ── AUTH ── */
@@ -699,42 +793,36 @@ async function doLogin(){
   btn.disabled=true; btn.innerHTML='<span class="spinner"></span>กำลังตรวจสอบ...';
 
   try{
-    // ── 1. ยิง KCI API ──
     const res=await fetch('/api/scores',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
     const data=await res.json();
     if(!data.success){showAlert(al,data.message||'เข้าสู่ระบบไม่สำเร็จ');return;}
 
-    // ── 2. ตรวจสอบ Firebase ว่ามี record อยู่ไหม ──
-    let role='guest', memberData=null, memberUid=null;
+    let memberData=null, memberUid=null, role='student';
     if(DB){
-      const{ref,get}=FUNS;
-      const snap=await get(ref(DB,'members'));
-      const all=snap.val()||{};
-      for(const[uid,m] of Object.entries(all)){
-        if(String(m.studentId)===String(u)){
-          role=m.role||'guest';
-          memberData=m;
-          memberUid=uid;
-          break;
-        }
+      const found=findMemberByStudentId(u);
+      if(found){
+        memberData=found.member;
+        memberUid=found.uid;
+        role=memberData.role||'student';
       }
     }
 
-    // ── 3. สร้าง SESSION ──
     SESSION={
-      username:u, password:p,
+      username:u,
+      password:p,
+      memberUid,
       name:data.student||memberData?.name||'นักเรียน',
       role,
       tel:data.tel||memberData?.tel||'—',
-      scores:data.scores||{good:'0',bad:'0',total:'0'}
+      scores:data.scores||memberData?.scores||{good:'0',bad:'0',total:'0'}
     };
     localStorage.setItem('42hub_sess',JSON.stringify(SESSION));
 
-    // ── 4. Sync ข้อมูลลง Firebase ──
     if(DB){
       const{ref,set,update,push}=FUNS;
       const now=Date.now();
       const freshData={
+        studentId:u,
         name:SESSION.name,
         tel:SESSION.tel,
         scores:SESSION.scores,
@@ -742,52 +830,52 @@ async function doLogin(){
       };
 
       if(!memberUid){
-        // ยังไม่มีใน DB → สร้างใหม่ด้วย role=guest
         const newRef=push(ref(DB,'members'));
         memberUid=newRef.key;
+        SESSION.memberUid=memberUid;
         await set(newRef,{
-          studentId:u,
-          name:SESSION.name,
-          tel:SESSION.tel,
-          role:'guest',          // เริ่มต้นเป็น guest เสมอ
-          scores:SESSION.scores,
-          createdAt:now,
-          lastLogin:now
+          ...freshData,
+          role:'student',
+          createdAt:now
         });
-        termLog('info',`✨ สร้างข้อมูลใหม่ใน DB (role=guest) สำหรับ ${SESSION.name}`);
-      } else if(role==='student'||role==='admin'){
-        // มีอยู่แล้ว + เป็น student/admin → อัปเดตข้อมูลทุกอย่างเต็ม
-        await update(ref(DB,`members/${memberUid}`),freshData);
-        termLog('ok',`🔄 อัปเดตข้อมูล ${SESSION.name} (${role}) ลงใน DB แล้ว`);
+        termLog('info',`✨ สร้างข้อมูลใหม่ใน DB สำหรับ ${SESSION.name}`);
       } else {
-        // guest ที่มีอยู่แล้ว → อัปเดตแค่ lastLogin
-        await update(ref(DB,`members/${memberUid}`),{lastLogin:now});
+        await update(ref(DB,`members/${memberUid}`),freshData);
+        termLog('ok',`🔄 ซิงค์ข้อมูล ${SESSION.name} ลง Firebase แล้ว`);
       }
+
+      SESSION.memberUid=memberUid;
+      localStorage.setItem('42hub_sess',JSON.stringify(SESSION));
     }
 
+    syncSessionFromMembers();
     afterLogin(true);
-  }catch(e){showAlert(al,'เชื่อมต่อ Server ไม่ได้: '+e.message);}
-  finally{btn.disabled=false;btn.innerHTML='เข้าสู่ระบบ';}
+  }catch(e){
+    showAlert(al,'เชื่อมต่อ Server ไม่ได้: '+e.message);
+  }finally{
+    btn.disabled=false; btn.innerHTML='เข้าสู่ระบบ';
+  }
 }
 
 function afterLogin(fresh){
-  // ── ซ่อนหน้า Login ออกจาก DOM flow ──
   const loginPage=document.getElementById('page-login');
   loginPage.classList.remove('active');
   loginPage.style.display='none';
 
-  // ── แสดง Navbar + Profile button ──
   document.getElementById('navbar').style.display='flex';
   const pb=document.getElementById('profileBtn');
   pb.style.display='flex';
 
-  // ── แสดงปุ่ม Admin ถ้าเป็น admin ──
   if(SESSION.role==='admin'){
     document.getElementById('nav-admin').style.display='flex';
+  } else {
+    document.getElementById('nav-admin').style.display='none';
   }
 
   updateProfilePanel();
   updateProfileBtn();
+  renderWalletSettings();
+  renderAdminStudentSelect();
 
   if(fresh){
     loadHomeScores();
@@ -807,7 +895,7 @@ function afterLogin(fresh){
 }
 
 function logout(){
-  SESSION=null; CACHED_REPORT=null;
+  SESSION=null; CACHED_REPORT=null; CUR_PAY_WEEK=null; CUR_PAY_FILTER='all';
   localStorage.removeItem('42hub_sess');
 
   // ซ่อน navbar + profile btn
@@ -950,49 +1038,159 @@ function openStudentModal(uid){
 }
 
 /* ── PAYMENT ── */
+function weekKeyFromParts(year,month,week){
+  const yy=Number(year)||new Date().getFullYear()+543;
+  const mm=String(Number(month)||1).padStart(2,'0');
+  const ww=Number(week)||1;
+  return `${yy}_${mm}_w${ww}`;
+}
+
+function parseWeekKey(key){
+  const [yy,mm,wRaw]=String(key||'').split('_');
+  return {year:Number(yy)||new Date().getFullYear()+543,month:Number(mm)||1,week:Number(String(wRaw||'w1').replace('w',''))||1};
+}
+
+function getCurrentWeekOfMonth(date=new Date()){
+  const firstDay=new Date(date.getFullYear(),date.getMonth(),1).getDay();
+  return Math.min(4,Math.max(1,Math.ceil((date.getDate()+firstDay)/7)));
+}
+
+function getCurrentWeekKey(){
+  const now=new Date();
+  return weekKeyFromParts(now.getFullYear()+543, now.getMonth()+1, getCurrentWeekOfMonth(now));
+}
+
 function getWeekKeys(){
   const wks=new Set();
-  Object.values(PAYMENTS).forEach(p=>wks.add(`${p.year||2568}_${String(p.month||1).padStart(2,'0')}_w${p.week||1}`));
-  if(!wks.size){const now=new Date();wks.add(`${now.getFullYear()+543}_${String(now.getMonth()+1).padStart(2,'0')}_w1`);}
-  return[...wks].sort().reverse();
+  Object.keys(SETTINGS?.wallet?.weekPrices||{}).forEach(k=>wks.add(k));
+  Object.values(PAYMENTS).forEach(p=>wks.add(weekKeyFromParts(p.year||new Date().getFullYear()+543,p.month||1,p.week||1)));
+  wks.add(getCurrentWeekKey());
+  return [...wks].sort().reverse();
+}
+
+function formatWeekLabel(key){
+  const {month,week}=parseWeekKey(key);
+  return `เดือน${MONTHS[(month||1)-1]} สัปดาห์ที่ ${week||1}`;
+}
+
+function formatMoney(value){
+  const n=Number(value)||0;
+  return new Intl.NumberFormat('th-TH',{maximumFractionDigits:0}).format(n);
+}
+
+function getExpectedAmountForWeek(key){
+  const wk=SETTINGS?.wallet?.weekPrices?.[key];
+  const def=SETTINGS?.wallet?.defaultAmount ?? 20;
+  const amt=wk!=null ? wk : def;
+  return Number(amt)||0;
+}
+
+function getWeekPaymentSummary(key){
+  const paidByStudent={};
+  Object.values(PAYMENTS).forEach(p=>{
+    const wk=weekKeyFromParts(p.year||new Date().getFullYear()+543,p.month||1,p.week||1);
+    if(wk===key){
+      const sid=String(p.studentId||'');
+      paidByStudent[sid]=(paidByStudent[sid]||0)+Number(p.amount||0);
+    }
+  });
+  const expected=getExpectedAmountForWeek(key);
+  return {expected, paidByStudent};
+}
+
+function renderPayControls(){
+  const weekSel=document.getElementById('pay-week-select');
+  const statusSel=document.getElementById('pay-status-filter');
+  if(weekSel){
+    const weeks=getWeekKeys();
+    if(!CUR_PAY_WEEK || !weeks.includes(CUR_PAY_WEEK)) CUR_PAY_WEEK=getCurrentWeekKey();
+    weekSel.innerHTML=weeks.map(wk=>`<option value="${wk}">${formatWeekLabel(wk)}</option>`).join('');
+    weekSel.value=CUR_PAY_WEEK;
+  }
+  if(statusSel) statusSel.value=CUR_PAY_FILTER;
+}
+
+function setPayFilter(filter){
+  CUR_PAY_FILTER=filter||'all';
+  renderPayTable();
 }
 
 function renderPayment(){
   if(!SESSION)return;
   const content=document.getElementById('pay-content');
   const wall=document.getElementById('pay-guest-wall');
-  if(SESSION.role==='guest'&&!PERMS.pay){content.style.display='none';wall.style.display='flex';return;}
-  content.style.display='block';wall.style.display='none';
-  const weeks=getWeekKeys();
-  if(!CUR_PAY_WEEK||!weeks.includes(CUR_PAY_WEEK))CUR_PAY_WEEK=weeks[0];
-  document.getElementById('pay-tab-row').innerHTML=weeks.slice(0,6).map(wk=>{
-    const parts=wk.split('_');const mi=parseInt(parts[1])-1;const wn=parts[2].replace('w','');
-    return`<button class="pay-tab ${wk===CUR_PAY_WEEK?'active':''}" onclick="selectPayWeek('${wk}')">${MONTHS[mi]} ส.${wn}</button>`;
-  }).join('');
+  if(SESSION.role==='guest'&&!PERMS.pay){
+    content.style.display='none';
+    wall.style.display='flex';
+    return;
+  }
+  content.style.display='block';
+  wall.style.display='none';
+  renderPayControls();
   renderPayTable();
 }
 
-function selectPayWeek(wk){CUR_PAY_WEEK=wk;renderPayment();}
+function selectPayWeek(wk){
+  CUR_PAY_WEEK=wk;
+  renderPayControls();
+  renderPayTable();
+  syncAdminPaymentAmount();
+}
 
 function renderPayTable(){
   if(!CUR_PAY_WEEK)return;
-  const parts=CUR_PAY_WEEK.split('_');const mi=parseInt(parts[1])-1;const wn=parseInt(parts[2].replace('w',''));
-  document.getElementById('pay-sub-title').textContent=`เดือน${MONTHS[mi]} สัปดาห์ที่ ${wn}`;
-  const paidSet=new Set();
-  Object.values(PAYMENTS).forEach(p=>{
-    if(String(p.month)===String(mi+1)&&String(p.week)===String(wn))paidSet.add(String(p.studentId));
+  const expected=getExpectedAmountForWeek(CUR_PAY_WEEK);
+  const summary=getWeekPaymentSummary(CUR_PAY_WEEK);
+  const members=Object.values(MEMBERS)
+    .slice()
+    .sort((a,b)=>String(a.studentId||'').localeCompare(String(b.studentId||''),'th'));
+
+  const rows=members.map(m=>{
+    const paid=Number(summary.paidByStudent[String(m.studentId)]||0);
+    const status = paid >= expected && expected>0 ? 'paid' : paid > 0 ? 'incomplete' : 'unpaid';
+    return {...m, paid, status};
   });
-  const mbs=Object.values(MEMBERS);
-  const pc=mbs.filter(m=>paidSet.has(String(m.studentId))).length;
-  document.getElementById('pay-stats-row').innerHTML=`<div class="stat-card"><div class="stat-val" style="color:var(--green)">${pc}</div><div class="stat-lbl">✅ จ่ายแล้ว</div></div><div class="stat-card"><div class="stat-val" style="color:var(--red)">${mbs.length-pc}</div><div class="stat-lbl">❌ ยังไม่จ่าย</div></div>`;
-  if(!mbs.length){document.getElementById('pay-list').innerHTML='<div class="empty-state">ยังไม่มีสมาชิก</div>';return;}
-  document.getElementById('pay-list').innerHTML=mbs.map(m=>{
-    const paid=paidSet.has(String(m.studentId));
-    return`<div class="pay-row"><div class="student-avatar" style="width:36px;height:36px;font-size:18px;flex-shrink:0">${avatarEmoji(m.name)}</div><div class="pay-name">${m.name||'—'}</div><div class="pay-status ${paid?'paid':'unpaid'}">${paid?'✅ จ่ายแล้ว':'❌ ยังไม่จ่าย'}</div></div>`;
-  }).join('');
+
+  const paidCount=rows.filter(r=>r.status==='paid').length;
+  const incompleteCount=rows.filter(r=>r.status==='incomplete').length;
+  const unpaidCount=rows.filter(r=>r.status==='unpaid').length;
+  const collected=rows.reduce((a,r)=>a + Math.min(r.paid, expected||r.paid), 0);
+
+  document.getElementById('pay-sub-title').textContent=`${formatWeekLabel(CUR_PAY_WEEK)} · เป้าหมาย ${formatMoney(expected)} บาท/คน`;
+  document.getElementById('pay-amount-hint').textContent=`ค่าใช้จ่ายต่อคน ${formatMoney(expected)} บาท`;
+  document.getElementById('pay-stats-row').innerHTML=`
+    <div class="stat-card"><div class="stat-val" style="color:var(--green)">${paidCount}</div><div class="stat-lbl">✅ จ่ายแล้ว</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--gold)">${incompleteCount}</div><div class="stat-lbl">⚠️ ยังจ่ายไม่ครบ</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--red)">${unpaidCount}</div><div class="stat-lbl">❌ ยังไม่จ่าย</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--purple)">${formatMoney(collected)}</div><div class="stat-lbl">💠 ยอดรวมสัปดาห์นี้</div></div>
+  `;
+
+  const filter=CUR_PAY_FILTER||'all';
+  const visibleRows=filter==='all' ? rows : rows.filter(r=>r.status===filter);
+
+  if(!rows.length){
+    document.getElementById('pay-list').innerHTML='<div class="empty-state">ยังไม่มีสมาชิก</div>';
+    return;
+  }
+
+  document.getElementById('pay-list').innerHTML=visibleRows.length
+    ? visibleRows.map(m=>`
+      <div class="pay-row ${m.status}">
+        <div class="student-avatar" style="width:36px;height:36px;font-size:18px;flex-shrink:0">${avatarEmoji(m.name)}</div>
+        <div class="pay-name">
+          ${m.name||'—'}
+          <div class="pay-meta">รหัส ${m.studentId||'—'} · ${formatMoney(m.paid)}/${formatMoney(expected)} บาท</div>
+        </div>
+        <div class="pay-status ${m.status}">
+          ${m.status==='paid'?'✅ จ่ายแล้ว':m.status==='incomplete'?'🟡 ไม่ครบ':'❌ ยังไม่จ่าย'}
+        </div>
+      </div>
+    `).join('')
+    : '<div class="empty-state">ไม่พบข้อมูลตามตัวกรองที่เลือก</div>';
 }
 
 /* ── HISTORY ── */
+
 function openHistoryModal(){openModal('historyModal');renderHistory();}
 function renderHistory(){
   const el=document.getElementById('history-modal-body');
@@ -1011,6 +1209,11 @@ function switchAdminTab(tab){
   ['ap-members','ap-payment','ap-perms','ap-cmd'].forEach(id=>document.getElementById(id).className='admin-panel');
   const map={members:'ap-members',payment:'ap-payment',perms:'ap-perms',cmd:'ap-cmd'};
   document.getElementById(map[tab]).className='admin-panel active';
+  if(tab==='payment'){
+    renderWalletSettings();
+    renderAdminStudentSelect();
+    syncAdminPaymentAmount();
+  }
 }
 
 async function addMember(){
@@ -1021,15 +1224,91 @@ async function addMember(){
   const role=document.getElementById('am-role').value;
   if(!sid||!name){alert('กรุณากรอกรหัสและชื่อ');return;}
   const{ref,push,set}=FUNS;
-  await set(push(ref(DB,'members')),{studentId:sid,name,tel,role,createdAt:Date.now()});
+  await set(push(ref(DB,'members')),{studentId:sid,name,tel,role,createdAt:Date.now(),lastLogin:Date.now()});
   ['am-id','am-name','am-tel'].forEach(id=>document.getElementById(id).value='');
 }
 
 function renderMemberAdmin(){
   const list=document.getElementById('member-list');if(!list)return;
-  const arr=Object.entries(MEMBERS);
+  const arr=Object.entries(MEMBERS).sort((a,b)=>String(a[1].studentId||'').localeCompare(String(b[1].studentId||''),'th'));
   if(!arr.length){list.innerHTML='<div class="empty-state">ยังไม่มีสมาชิก<br>เพิ่มจากฟอร์มด้านบน</div>';return;}
-  list.innerHTML=arr.map(([uid,m])=>`<div class="member-item"><div class="student-avatar" style="width:40px;height:40px;font-size:20px">${avatarEmoji(m.name)}</div><div class="member-info"><div class="member-name">${m.name||'—'}</div><div class="member-id">รหัส ${m.studentId||'—'} · ${roleBadge(m.role,'sm')}</div></div><div class="member-actions"><button class="icon-btn" onclick="openEditModal('${uid}')">✏️</button><button class="icon-btn danger" onclick="deleteMember('${uid}','${(m.name||'').replace(/'/g,"\\'")}')">🗑️</button></div></div>`).join('');
+  list.innerHTML=arr.map(([uid,m])=>`<div class="member-item"><div class="student-avatar" style="width:40px;height:40px;font-size:20px">${avatarEmoji(m.name)}</div><div class="member-info"><div class="member-name">${m.name||'—'}</div><div class="member-id">รหัส ${m.studentId||'—'} · ${roleBadge(m.role,'sm')}</div></div><div class="member-actions"><button class="icon-btn" onclick="openEditModal('${uid}')">✏️</button><button class="icon-btn danger" onclick="deleteMember('${uid}','${(m.name||'').replace(/'/g,"\'")}')">🗑️</button></div></div>`).join('');
+}
+
+function renderAdminStudentSelect(){
+  const sel=document.getElementById('ap-student-select');
+  if(!sel) return;
+  const arr=Object.entries(MEMBERS).sort((a,b)=>String(a[1].studentId||'').localeCompare(String(b[1].studentId||''),'th'));
+  const current=sel.value;
+  sel.innerHTML=['<option value="">— เลือกนักเรียน —</option>']
+    .concat(arr.map(([uid,m])=>`<option value="${m.studentId||''}" data-uid="${uid}">${m.name||'—'} · ${m.studentId||'—'}</option>`))
+    .join('');
+  if(current) sel.value=current;
+}
+
+function pickAdminStudent(studentId){
+  document.getElementById('ap-sid').value=studentId||'';
+  syncAdminPaymentAmount();
+}
+
+function syncAdminStudentSelect(){
+  const sid=document.getElementById('ap-sid')?.value.trim();
+  const sel=document.getElementById('ap-student-select');
+  if(!sel) return;
+  sel.value=sid||'';
+}
+
+function syncAdminPaymentAmount(force=false){
+  const wkSel=document.getElementById('ap-week');
+  const monthSel=document.getElementById('ap-month');
+  const amountEl=document.getElementById('ap-amount');
+  const month=parseInt(monthSel?.value||new Date().getMonth()+1,10);
+  const week=parseInt(wkSel?.value||1,10);
+  const weekKey=weekKeyFromParts(new Date().getFullYear()+543, month, week);
+  const amount=getExpectedAmountForWeek(weekKey);
+  if(amountEl && (force || !amountEl.value || amountEl.value==='0')) amountEl.value=amount;
+  const note=document.getElementById('wallet-status-note');
+  if(note) note.textContent=`สัปดาห์ ${formatWeekLabel(weekKey)} · ตั้งราคา ${formatMoney(amount)} บาท`;
+}
+
+function loadWalletWeekSetting(){
+  const wkSel=document.getElementById('wallet-week-key');
+  if(!wkSel) return;
+  const key=wkSel.value||getCurrentWeekKey();
+  const amount=getExpectedAmountForWeek(key);
+  const amtInput=document.getElementById('wallet-week-amount');
+  const defInput=document.getElementById('wallet-default-amount');
+  if(amtInput) amtInput.value=amount;
+  if(defInput) defInput.value=SETTINGS?.wallet?.defaultAmount ?? 20;
+  const note=document.getElementById('wallet-status-note');
+  if(note) note.textContent=`${formatWeekLabel(key)} → ราคา ${formatMoney(amount)} บาท`;
+  syncAdminPaymentAmount();
+}
+
+function renderWalletSettings(){
+  const sel=document.getElementById('wallet-week-key');
+  if(sel){
+    const weeks=getWeekKeys();
+    const key=CUR_PAY_WEEK||getCurrentWeekKey();
+    sel.innerHTML=weeks.map(wk=>`<option value="${wk}">${formatWeekLabel(wk)}</option>`).join('');
+    sel.value=weeks.includes(key)?key:weeks[0];
+  }
+  const defInput=document.getElementById('wallet-default-amount');
+  if(defInput) defInput.value=SETTINGS?.wallet?.defaultAmount ?? 20;
+  loadWalletWeekSetting();
+}
+
+async function saveWalletSettings(){
+  if(!DB||SESSION?.role!=='admin')return;
+  const weekKey=document.getElementById('wallet-week-key')?.value || getCurrentWeekKey();
+  const weekAmount=Number(document.getElementById('wallet-week-amount')?.value || 0);
+  const defaultAmount=Number(document.getElementById('wallet-default-amount')?.value || 20);
+  const{ref,update}=FUNS;
+  await update(ref(DB),{
+    'settings/wallet/defaultAmount': Number.isFinite(defaultAmount) && defaultAmount>0 ? defaultAmount : 20,
+    [`settings/wallet/weekPrices/${weekKey}`]: Number.isFinite(weekAmount) && weekAmount>0 ? weekAmount : (Number.isFinite(defaultAmount) && defaultAmount>0 ? defaultAmount : 20)
+  });
+  termLog('ok',`บันทึกการตั้งค่าเงินห้องสำหรับ ${formatWeekLabel(weekKey)} แล้ว`);
 }
 
 function openEditModal(uid){
@@ -1054,7 +1333,8 @@ async function saveMemberEdit(){
 }
 
 async function deleteMember(uid,name){
-  if(!confirm(`ลบ "${name}" ออกจากห้อง 4/2 ?\nการกระทำนี้ไม่สามารถย้อนกลับได้`))return;
+  if(!confirm(`ลบ "${name}" ออกจากห้อง 4/2 ?
+การกระทำนี้ไม่สามารถย้อนกลับได้`))return;
   const{ref,remove}=FUNS;await remove(ref(DB,`members/${uid}`));
 }
 
@@ -1087,6 +1367,7 @@ async function deletePayment(id){
 }
 
 /* ── PERMISSIONS ── */
+
 function applyPermsUI(){
   const pc=document.getElementById('perm-class');
   const pp=document.getElementById('perm-pay');
@@ -1125,8 +1406,9 @@ function updateProfileBtn(){
 }
 
 /* ── NAVIGATION ── */
-function goPage(pg){
+async function goPage(pg){
   document.getElementById('profilePanel').classList.remove('open');
+  if(SESSION?.username) syncSessionFromMembers();
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById(`page-${pg}`).classList.add('active');
@@ -1134,7 +1416,14 @@ function goPage(pg){
   CUR_PAGE=pg;
   if(pg==='class')renderClassmates();
   if(pg==='pay')renderPayment();
-  if(pg==='admin'){renderMemberAdmin();renderPayHistoryAdmin();}
+  if(pg==='admin'){
+    if(SESSION?.role!=='admin'){goPage('home');return;}
+    renderMemberAdmin();
+    renderPayHistoryAdmin();
+    renderWalletSettings();
+    renderAdminStudentSelect();
+    syncAdminPaymentAmount();
+  }
 }
 
 /* ── MODAL ── */
@@ -1155,6 +1444,14 @@ function avatarEmoji(name=''){
   return e[h%e.length];
 }
 function showAlert(el,msg){el.textContent='⚠️ '+msg;el.className='alert-box show';el.style.display='block';}
+
+function findMemberByStudentId(studentId){
+  const sid=String(studentId||'');
+  for(const [uid,member] of Object.entries(MEMBERS)){
+    if(String(member.studentId)===sid) return {uid,member};
+  }
+  return null;
+}
 
 /* ── THEME ── */
 (function(){
@@ -1185,7 +1482,7 @@ document.addEventListener('click',e=>{
 });
 
 // set current month in admin form
-(()=>{const s=document.getElementById('ap-month');if(s)s.value=new Date().getMonth()+1;})();
+(()=>{const d=new Date();const s=document.getElementById('ap-month');if(s)s.value=d.getMonth()+1;const wk=document.getElementById('ap-week');if(wk)wk.value=Math.min(4,Math.max(1,Math.ceil((d.getDate()+new Date(d.getFullYear(),d.getMonth(),1).getDay())/7)));const wf=document.getElementById('wallet-week-key');if(wf)wf.value=getCurrentWeekKey();})();
 
 /* ── TERMINAL / DB COMMANDS ── */
 const TERM_HISTORY=[];let TERM_HI=-1;
