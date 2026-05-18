@@ -1,1 +1,1049 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>4/2 Hub · คำชะอีวิทยาคาร</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 
+<!-- Firebase -->
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import{getDatabase,ref,set,get,update,push,onValue,remove}
+  from'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+// ⚠️ แทนที่ด้วย Firebase config ของคุณ
+const cfg={
+  apiKey:"YOUR_API_KEY",
+  authDomain:"YOUR_PROJECT.firebaseapp.com",
+  databaseURL:"https://YOUR_PROJECT-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"YOUR_PROJECT",
+  storageBucket:"YOUR_PROJECT.appspot.com",
+  messagingSenderId:"YOUR_SENDER_ID",
+  appId:"YOUR_APP_ID"
+};
+const fbApp=initializeApp(cfg);
+const db=getDatabase(fbApp);
+window.$db={db,ref,set,get,update,push,onValue,remove};
+window.dispatchEvent(new Event('firebase-ready'));
+</script>
+
+<style>
+/* ── TOKENS ── */
+:root{
+  --bg:#07090f;--bg2:#0c1018;--surface:#111827;--card:#141e2e;--card2:#192235;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.12);
+  --accent:#818cf8;--accent2:#22d3ee;--pink:#f472b6;--gold:#fbbf24;
+  --green:#34d399;--red:#f87171;--purple:#a78bfa;
+  --text:#e2e8f0;--text2:#94a3b8;--muted:#475569;
+  --r:18px;--r-sm:10px;--nav-h:64px;--top-h:54px;
+}
+[data-theme="light"]{
+  --bg:#f1f5f9;--bg2:#e8edf5;--surface:#fff;--card:#fff;--card2:#f8fafc;
+  --border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);
+  --text:#0f172a;--text2:#475569;--muted:#94a3b8;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans Thai',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E");opacity:.5}
+.orb{position:fixed;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0;opacity:.12;animation:drift 18s ease-in-out infinite alternate}
+.orb1{width:560px;height:560px;top:-180px;left:-120px;background:radial-gradient(circle,#818cf8,transparent 65%)}
+.orb2{width:480px;height:480px;bottom:-160px;right:-80px;background:radial-gradient(circle,#22d3ee,transparent 65%);animation-direction:alternate-reverse;opacity:.1}
+@keyframes drift{0%{transform:translate(0,0)scale(1)}100%{transform:translate(50px,40px)scale(1.12)}}
+
+/* ── TOPBAR ── */
+#topbar{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--top-h);display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:rgba(7,9,15,.85);backdrop-filter:blur(18px);border-bottom:1px solid var(--border)}
+[data-theme="light"] #topbar{background:rgba(241,245,249,.9)}
+.logo{display:flex;align-items:center;gap:8px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;color:var(--text);text-decoration:none}
+.logo-emoji{font-size:22px}
+.badge-pill{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:10px;font-weight:700;letter-spacing:.5px;padding:2px 9px;border-radius:20px}
+.topbar-right{display:flex;align-items:center;gap:8px}
+#themeBtn{width:34px;height:34px;border-radius:50%;background:var(--surface);border:1px solid var(--border2);color:var(--text2);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+#themeBtn:hover{border-color:var(--accent);color:var(--accent)}
+#profileBtn{display:none;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border2);color:var(--text);border-radius:24px;padding:5px 14px 5px 6px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;transition:all .2s;outline:none}
+#profileBtn:hover{border-color:var(--accent);box-shadow:0 0 0 3px rgba(129,140,248,.15)}
+.avatar-sm{width:28px;height:28px;border-radius:50%;font-size:14px;background:linear-gradient(135deg,var(--accent),var(--pink));display:flex;align-items:center;justify-content:center}
+
+/* ── BOTTOM NAV ── */
+#navbar{position:fixed;bottom:0;left:0;right:0;z-index:100;height:var(--nav-h);display:none;justify-content:space-around;align-items:center;padding:0 4px max(8px,env(safe-area-inset-bottom));background:rgba(7,9,15,.92);backdrop-filter:blur(18px);border-top:1px solid var(--border)}
+[data-theme="light"] #navbar{background:rgba(241,245,249,.95)}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 14px;border:none;background:none;color:var(--muted);font-family:inherit;font-size:10px;font-weight:600;letter-spacing:.3px;cursor:pointer;border-radius:var(--r-sm);transition:color .2s;outline:none;position:relative}
+.nav-btn .ico{font-size:22px;transition:transform .2s}
+.nav-btn:hover{color:var(--text2)}
+.nav-btn.active{color:var(--accent2)}
+.nav-btn.active .ico{transform:scale(1.15)}
+.n-dot{position:absolute;top:5px;right:9px;width:7px;height:7px;border-radius:50%;background:var(--pink);display:none;box-shadow:0 0 6px var(--pink)}
+
+/* ── PAGES ── */
+.page{position:relative;z-index:1;min-height:100vh;padding:calc(var(--top-h)+20px) 16px calc(var(--nav-h)+24px);max-width:560px;margin:0 auto;display:none}
+.page.active{display:block;animation:pgIn .3s ease both}
+@keyframes pgIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+#page-login{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px 20px;max-width:100%}
+#page-login.active{display:flex}
+
+/* ── LOGIN ── */
+.login-wrap{width:100%;max-width:400px}
+.login-hero{text-align:center;margin-bottom:32px}
+.login-ico{display:inline-flex;align-items:center;justify-content:center;width:74px;height:74px;border-radius:22px;font-size:36px;background:linear-gradient(135deg,rgba(129,140,248,.2),rgba(34,211,238,.2));border:1px solid rgba(129,140,248,.35);margin-bottom:14px;animation:flt 3.5s ease-in-out infinite}
+@keyframes flt{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.login-hero h1{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;background:linear-gradient(135deg,var(--text),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.login-hero p{color:var(--text2);font-size:13px;margin-top:5px}
+.login-card{background:var(--card);border:1px solid var(--border2);border-radius:24px;padding:28px 24px;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text2);margin-bottom:7px}
+.field input{width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-sm);padding:13px 16px;font-family:inherit;font-size:15px;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s}
+.field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(129,140,248,.15)}
+.field input::placeholder{color:var(--muted)}
+.alert-box{background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.3);border-radius:var(--r-sm);padding:11px 14px;font-size:13px;color:var(--red);margin-bottom:14px;display:none}
+.alert-box.show{display:block}
+
+/* ── BUTTONS ── */
+.btn{width:100%;padding:14px;border:none;border-radius:var(--r-sm);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;transition:all .25s}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#6366f1);color:#fff;box-shadow:0 4px 20px rgba(129,140,248,.35)}
+.btn-primary:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 30px rgba(129,140,248,.5)}
+.btn-primary:disabled{opacity:.55;cursor:not-allowed}
+.btn-sm{width:auto;padding:8px 16px;font-size:13px}
+.btn-outline{background:transparent;border:1px solid var(--border2);color:var(--text2);font-size:13px}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.btn-danger{background:linear-gradient(135deg,var(--red),#dc2626);color:#fff}
+.btn-success{background:linear-gradient(135deg,var(--green),#059669);color:#fff}
+.spinner{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:7px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── PAGE HEADER ── */
+.pg-header{margin-bottom:20px}
+.pg-title{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;background:linear-gradient(135deg,var(--text),var(--text2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.pg-sub{color:var(--text2);font-size:13px;margin-top:4px}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:14px}
+.card2{background:var(--card2);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px 16px;margin-bottom:10px}
+
+/* ── HOME ── */
+.student-hero{background:linear-gradient(135deg,rgba(129,140,248,.15),rgba(34,211,238,.1));border:1px solid rgba(129,140,248,.25);border-radius:var(--r);padding:22px 20px;display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.hero-avatar{width:58px;height:58px;border-radius:50%;font-size:28px;flex-shrink:0;background:linear-gradient(135deg,var(--accent),var(--pink));display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(129,140,248,.4)}
+.hero-name{font-size:17px;font-weight:700}
+.hero-sub{font-size:12px;color:var(--text2);margin-top:3px}
+.role-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;letter-spacing:.5px;padding:2px 9px;border-radius:20px;margin-top:6px}
+.role-admin{background:rgba(251,191,36,.15);color:var(--gold);border:1px solid rgba(251,191,36,.3)}
+.role-student{background:rgba(34,211,238,.12);color:var(--accent2);border:1px solid rgba(34,211,238,.25)}
+.role-guest{background:rgba(148,163,184,.1);color:var(--text2);border:1px solid var(--border2)}
+.score-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px}
+.score-card{border-radius:14px;padding:18px 12px;text-align:center;border:1px solid transparent;cursor:pointer;transition:transform .25s,box-shadow .3s;user-select:none}
+.score-card:hover{transform:translateY(-5px)}
+.score-card:active{transform:scale(.97)}
+.score-card.good{background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.2);box-shadow:0 0 24px rgba(52,211,153,.12)}
+.score-card.bad{background:rgba(248,113,113,.08);border-color:rgba(248,113,113,.2);box-shadow:0 0 24px rgba(248,113,113,.12)}
+.score-card.tot{background:rgba(167,139,250,.08);border-color:rgba(167,139,250,.2);box-shadow:0 0 24px rgba(167,139,250,.12)}
+.sc-icon{font-size:22px;margin-bottom:6px}
+.sc-val{font-size:28px;font-weight:900;line-height:1}
+.score-card.good .sc-val{color:var(--green)}
+.score-card.bad  .sc-val{color:var(--red)}
+.score-card.tot  .sc-val{color:var(--purple)}
+.sc-lbl{font-size:10px;color:var(--text2);margin-top:5px;font-weight:600;letter-spacing:.3px}
+.action-row{display:flex;gap:10px}
+.action-row .btn{flex:1;padding:12px}
+
+/* ── CLASSMATES ── */
+.search-bar{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-sm);padding:11px 14px;margin-bottom:16px}
+.search-bar input{flex:1;background:none;border:none;outline:none;font-family:inherit;font-size:14px;color:var(--text)}
+.search-bar input::placeholder{color:var(--muted)}
+.search-ico{font-size:16px;color:var(--muted)}
+.student-item{background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px 16px;display:flex;align-items:center;gap:14px;margin-bottom:10px;cursor:pointer;transition:border-color .2s,transform .15s}
+.student-item:hover{border-color:var(--border2);transform:translateX(3px)}
+.student-avatar{width:44px;height:44px;border-radius:50%;font-size:20px;flex-shrink:0;background:linear-gradient(135deg,var(--surface),var(--card2));border:2px solid var(--border2);display:flex;align-items:center;justify-content:center}
+.student-info{flex:1;min-width:0}
+.student-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.student-meta{font-size:12px;color:var(--text2);margin-top:2px}
+.student-score{font-size:13px;font-weight:700;color:var(--green);background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);padding:3px 10px;border-radius:20px;white-space:nowrap}
+
+/* ── PAYMENT ── */
+.pay-tabs{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:2px}
+.pay-tabs::-webkit-scrollbar{height:3px}
+.pay-tab{flex-shrink:0;padding:8px 16px;border-radius:20px;border:none;background:var(--surface);color:var(--text2);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.pay-tab.active{background:linear-gradient(135deg,var(--accent),#6366f1);color:#fff}
+.pay-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:16px;text-align:center}
+.stat-val{font-size:24px;font-weight:900;color:var(--accent)}
+.stat-lbl{font-size:11px;color:var(--text2);margin-top:3px;font-weight:600}
+.pay-row{background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:13px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.pay-name{flex:1;font-size:13px;font-weight:600}
+.pay-status{font-size:11px;font-weight:700;letter-spacing:.3px;padding:4px 12px;border-radius:20px}
+.pay-status.paid{background:rgba(52,211,153,.15);color:var(--green)}
+.pay-status.unpaid{background:rgba(248,113,113,.12);color:var(--red)}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.section-title{font-size:14px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+
+/* ── HISTORY ── */
+.history-item{background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.history-icon{width:38px;height:38px;border-radius:50%;font-size:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.history-icon.in{background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.2)}
+.history-info{flex:1}
+.history-title{font-size:13px;font-weight:600}
+.history-sub{font-size:11px;color:var(--text2);margin-top:2px}
+.history-amt{font-size:15px;font-weight:700}
+.history-amt.in{color:var(--green)}
+
+/* ── ADMIN ── */
+.admin-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:20px;overflow-x:auto}
+.admin-tab{flex-shrink:0;padding:10px 16px;border:none;background:none;font-family:inherit;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
+.admin-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.admin-panel{display:none}
+.admin-panel.active{display:block;animation:pgIn .25s ease}
+.input-group{margin-bottom:14px}
+.input-group label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text2);margin-bottom:7px}
+.input-group input,.input-group select{width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-sm);padding:11px 14px;font-family:inherit;font-size:14px;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s}
+.input-group select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
+.input-group input:focus,.input-group select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(129,140,248,.15)}
+.input-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.member-item{background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:13px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.member-info{flex:1;min-width:0}
+.member-name{font-size:14px;font-weight:600}
+.member-id{font-size:11px;color:var(--text2);margin-top:2px}
+.member-actions{display:flex;gap:6px}
+.icon-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--border2);background:none;color:var(--text2);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.icon-btn:hover{border-color:var(--accent);color:var(--accent)}
+.icon-btn.danger:hover{border-color:var(--red);color:var(--red)}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)}
+.toggle-row:last-child{border-bottom:none}
+.t-title{font-size:14px;font-weight:600}
+.t-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.toggle{position:relative;width:46px;height:26px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle-slider{position:absolute;inset:0;border-radius:30px;background:var(--surface);border:1px solid var(--border2);transition:background .3s}
+.toggle-slider::after{content:'';position:absolute;left:3px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;background:var(--muted);transition:transform .3s,background .3s}
+.toggle input:checked+.toggle-slider{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent}
+.toggle input:checked+.toggle-slider::after{transform:translate(20px,-50%);background:#fff}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:200;display:flex;align-items:flex-end;justify-content:center;padding:0 0 0;opacity:0;pointer-events:none;transition:opacity .25s}
+@media(min-width:500px){.modal-overlay{align-items:center;padding:16px}}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--card);border:1px solid var(--border2);border-radius:20px 20px 20px 20px;width:100%;max-width:480px;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;transform:translateY(60px)scale(.97);transition:transform .3s;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+@media(max-width:499px){.modal{border-radius:20px 20px 0 0}}
+.modal-overlay.open .modal{transform:translateY(0)scale(1)}
+.modal-head{padding:18px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0}
+.modal-title{font-size:15px;font-weight:700}
+.modal-close{width:30px;height:30px;border-radius:50%;background:var(--surface);border:1px solid var(--border2);color:var(--text2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.modal-close:hover{background:rgba(248,113,113,.2);color:var(--red)}
+.modal-body{overflow-y:auto;padding:20px;flex:1}
+.modal-foot{padding:16px 20px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0}
+.modal-foot .btn{flex:1;padding:12px}
+
+/* ── PROFILE PANEL ── */
+#profilePanel{position:fixed;top:var(--top-h);right:0;z-index:150;width:min(320px,calc(100vw - 24px));background:var(--card);border:1px solid var(--border2);border-radius:0 0 20px 20px;box-shadow:0 20px 60px rgba(0,0,0,.5);transform:translateY(-20px);opacity:0;pointer-events:none;transition:all .25s}
+#profilePanel.open{transform:translateY(0);opacity:1;pointer-events:all}
+.profile-head{padding:20px;border-bottom:1px solid var(--border)}
+.profile-avatar{width:60px;height:60px;border-radius:50%;font-size:30px;background:linear-gradient(135deg,var(--accent),var(--pink));display:flex;align-items:center;justify-content:center;margin-bottom:12px}
+.profile-name{font-size:16px;font-weight:700}
+.profile-id{font-size:12px;color:var(--text2);margin-top:2px}
+.profile-body{padding:16px 20px}
+.profile-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.profile-row:last-child{border-bottom:none}
+.pk{color:var(--text2);font-weight:500}
+.pv{font-weight:700;color:var(--text)}
+.profile-foot{padding:14px 20px;border-top:1px solid var(--border)}
+
+/* ── REPORT TABLE ── */
+.report-section{margin-bottom:20px}
+.report-head{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--r-sm);margin-bottom:12px}
+.report-head.g-bg{background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.18)}
+.report-head.r-bg{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.18)}
+.rh-ico{font-size:18px}
+.rh-ttl{font-size:13px;font-weight:700;flex:1}
+.rh-tot{font-size:20px;font-weight:900}
+.g-bg .rh-tot{color:var(--green)}
+.r-bg .rh-tot{color:var(--red)}
+.data-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.data-tbl th{background:var(--surface);padding:8px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:1px solid var(--border)}
+.data-tbl td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.data-tbl tr:last-child td{border-bottom:none}
+.data-tbl tr:hover td{background:rgba(255,255,255,.02)}
+.chip{display:inline-block;padding:2px 9px;border-radius:20px;font-weight:700;font-size:11px}
+.chip.pos{background:rgba(52,211,153,.13);color:var(--green)}
+.chip.neg{background:rgba(248,113,113,.12);color:var(--red)}
+.c-muted{color:var(--muted);font-size:11px}
+.empty-state{text-align:center;padding:32px;color:var(--text2);font-size:13px}
+
+/* ── GUEST WALL ── */
+.guest-wall{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:40vh;text-align:center;padding:32px 20px;border:1px dashed var(--border2);border-radius:var(--r);margin:8px 0}
+.gw-ico{font-size:48px;margin-bottom:12px}
+.guest-wall h3{font-size:16px;font-weight:700;margin-bottom:6px}
+.guest-wall p{font-size:13px;color:var(--text2);max-width:260px}
+
+/* misc */
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;letter-spacing:.4px;padding:3px 10px;border-radius:20px}
+.loading-spinner{display:block;width:28px;height:28px;margin:32px auto;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+.divider{height:1px;background:var(--border);margin:16px 0}
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<!-- TOPBAR -->
+<header id="topbar">
+  <a class="logo" href="#" onclick="return false">
+    <span class="logo-emoji">🏫</span>
+    คำชะอีวิทยาคาร
+    <span class="badge-pill">4/2</span>
+  </a>
+  <div class="topbar-right">
+    <button id="themeBtn" title="เปลี่ยนธีม">🌙</button>
+    <button id="profileBtn" onclick="toggleProfile()">
+      <div class="avatar-sm" id="top-avatar">👤</div>
+      <span id="profileBtnName">โปรไฟล์</span>
+    </button>
+  </div>
+</header>
+
+<!-- PROFILE PANEL -->
+<div id="profilePanel">
+  <div class="profile-head">
+    <div class="profile-avatar" id="pp-avatar">👤</div>
+    <div class="profile-name" id="pp-name">—</div>
+    <div class="profile-id" id="pp-id">—</div>
+    <div style="margin-top:8px" id="pp-role-wrap"></div>
+  </div>
+  <div class="profile-body">
+    <div class="profile-row"><span class="pk">📱 เบอร์โทร</span><span class="pv" id="pp-tel">—</span></div>
+    <div class="profile-row"><span class="pk">😇 ความดี</span><span class="pv" id="pp-good" style="color:var(--green)">—</span></div>
+    <div class="profile-row"><span class="pk">😔 ตัดคะแนน</span><span class="pv" id="pp-bad" style="color:var(--red)">—</span></div>
+    <div class="profile-row"><span class="pk">⭐ สรุปรวม</span><span class="pv" id="pp-total" style="color:var(--purple)">—</span></div>
+  </div>
+  <div class="profile-foot">
+    <button class="btn btn-outline" style="width:100%;padding:10px" onclick="logout()">🚪 ออกจากระบบ</button>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav id="navbar">
+  <button class="nav-btn active" id="nav-home" onclick="goPage('home')">
+    <span class="ico">🏠</span>หน้าหลัก
+  </button>
+  <button class="nav-btn" id="nav-class" onclick="goPage('class')">
+    <span class="ico">👥</span>รายชื่อ
+  </button>
+  <button class="nav-btn" id="nav-pay" onclick="goPage('pay')">
+    <span class="ico">💰</span>เงินห้อง
+  </button>
+  <button class="nav-btn" id="nav-admin" onclick="goPage('admin')" style="display:none">
+    <span class="ico">⚙️</span>Admin
+    <span class="n-dot"></span>
+  </button>
+</nav>
+
+<!-- ════ PAGES ════ -->
+
+<!-- LOGIN -->
+<section id="page-login" class="page active">
+  <div class="login-wrap">
+    <div class="login-hero">
+      <div class="login-ico">🏫</div>
+      <h1>4/2 Hub</h1>
+      <p>คำชะอีวิทยาคาร · ระบบจัดการห้องเรียน</p>
+    </div>
+    <div class="login-card">
+      <div class="alert-box" id="loginAlert"></div>
+      <div class="field">
+        <label>รหัสนักเรียน</label>
+        <input type="text" id="uInput" placeholder="เช่น 66001" autocomplete="username"/>
+      </div>
+      <div class="field">
+        <label>รหัสผ่าน</label>
+        <input type="password" id="pInput" placeholder="รหัสผ่าน" autocomplete="current-password"/>
+      </div>
+      <button class="btn btn-primary" id="loginBtn" onclick="doLogin()">เข้าสู่ระบบ</button>
+    </div>
+    <p style="text-align:center;font-size:11px;color:var(--muted);margin-top:16px">
+      ระบบใช้ข้อมูลจาก KCI · เก็บข้อมูลด้วย Firebase Realtime DB
+    </p>
+  </div>
+</section>
+
+<!-- HOME -->
+<section id="page-home" class="page">
+  <div id="home-loading"><span class="loading-spinner"></span></div>
+  <div id="home-content" style="display:none">
+    <div class="student-hero">
+      <div class="hero-avatar" id="home-avatar">👤</div>
+      <div>
+        <div class="hero-name" id="home-name">—</div>
+        <div class="hero-sub">คำชะอีวิทยาคาร</div>
+        <div id="home-role-badge"></div>
+      </div>
+    </div>
+    <div class="score-grid">
+      <div class="score-card good" onclick="openScoreModal('good')">
+        <div class="sc-icon">😇</div>
+        <div class="sc-val" id="h-good">—</div>
+        <div class="sc-lbl">ความดี</div>
+      </div>
+      <div class="score-card bad" onclick="openScoreModal('bad')">
+        <div class="sc-icon">😔</div>
+        <div class="sc-val" id="h-bad">—</div>
+        <div class="sc-lbl">ตัดคะแนน</div>
+      </div>
+      <div class="score-card tot" onclick="openScoreModal('total')">
+        <div class="sc-icon">⭐</div>
+        <div class="sc-val" id="h-total">—</div>
+        <div class="sc-lbl">สรุปรวม</div>
+      </div>
+    </div>
+    <div class="action-row">
+      <button class="btn btn-outline" onclick="doRefresh()">🔄 รีเฟรช</button>
+      <button class="btn btn-outline" onclick="openHistoryModal()">📋 ประวัติเงิน</button>
+    </div>
+  </div>
+</section>
+
+<!-- CLASS -->
+<section id="page-class" class="page">
+  <div class="pg-header">
+    <div class="pg-title">รายชื่อนักเรียน 👥</div>
+    <div class="pg-sub">ห้อง 4/2 · คำชะอีวิทยาคาร</div>
+  </div>
+  <div class="guest-wall" id="class-guest-wall">
+    <div class="gw-ico">🔒</div>
+    <h3>ไม่มีสิทธิ์เข้าถึง</h3>
+    <p>เมนูนี้สำหรับนักเรียนห้อง 4/2 หรือตามที่ Admin กำหนด</p>
+  </div>
+  <div id="class-content">
+    <div class="search-bar">
+      <span class="search-ico">🔍</span>
+      <input id="classSearch" type="text" placeholder="ค้นหาชื่อหรือรหัส..." oninput="renderClassmates()"/>
+    </div>
+    <div id="class-stats" style="margin-bottom:12px"></div>
+    <div id="class-list"></div>
+  </div>
+</section>
+
+<!-- PAYMENT -->
+<section id="page-pay" class="page">
+  <div class="pg-header">
+    <div class="pg-title">เงินห้อง 💰</div>
+    <div class="pg-sub" id="pay-sub-title">ระบบเก็บเงินห้อง 4/2</div>
+  </div>
+  <div class="guest-wall" id="pay-guest-wall">
+    <div class="gw-ico">🔒</div>
+    <h3>ไม่มีสิทธิ์เข้าถึง</h3>
+    <p>Admin ยังไม่เปิดให้ Guest ดูส่วนนี้</p>
+  </div>
+  <div id="pay-content">
+    <div class="pay-tabs" id="pay-tab-row"></div>
+    <div class="pay-stats" id="pay-stats-row"></div>
+    <div class="section-head">
+      <span class="section-title">รายชื่อ</span>
+      <button class="btn btn-sm btn-outline" onclick="openHistoryModal()">📋 ประวัติ</button>
+    </div>
+    <div id="pay-list"></div>
+  </div>
+</section>
+
+<!-- ADMIN -->
+<section id="page-admin" class="page">
+  <div class="pg-header">
+    <div class="pg-title">⚙️ Admin Dashboard</div>
+    <div class="pg-sub">จัดการข้อมูลทั้งหมดของห้อง 4/2</div>
+  </div>
+  <div class="admin-tabs">
+    <button class="admin-tab active" onclick="switchAdminTab('members')">👥 สมาชิก</button>
+    <button class="admin-tab" onclick="switchAdminTab('payment')">💰 เงินห้อง</button>
+    <button class="admin-tab" onclick="switchAdminTab('perms')">🔒 สิทธิ์</button>
+  </div>
+
+  <!-- MEMBERS -->
+  <div class="admin-panel active" id="ap-members">
+    <div class="card">
+      <div class="section-head" style="margin-bottom:16px"><span class="section-title">➕ เพิ่มสมาชิก</span></div>
+      <div class="input-group"><label>รหัสนักเรียน</label><input type="text" id="am-id" placeholder="เช่น 66001"/></div>
+      <div class="input-group"><label>ชื่อ-นามสกุล</label><input type="text" id="am-name" placeholder="นาย ชื่อ นามสกุล"/></div>
+      <div class="input-row">
+        <div class="input-group"><label>เบอร์โทร</label><input type="text" id="am-tel" placeholder="08x-xxx-xxxx"/></div>
+        <div class="input-group"><label>ยศ</label>
+          <select id="am-role"><option value="student">🎓 Student</option><option value="admin">👑 Admin</option></select>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="addMember()">➕ เพิ่มสมาชิก</button>
+    </div>
+    <div class="section-head"><span class="section-title">รายชื่อทั้งหมด</span></div>
+    <div id="member-list"></div>
+  </div>
+
+  <!-- PAYMENT ADMIN -->
+  <div class="admin-panel" id="ap-payment">
+    <div class="card">
+      <div class="section-head" style="margin-bottom:16px"><span class="section-title">✅ บันทึกการจ่ายเงิน</span></div>
+      <div class="input-row">
+        <div class="input-group"><label>เดือน</label>
+          <select id="ap-month">
+            <option value="1">มกราคม</option><option value="2">กุมภาพันธ์</option>
+            <option value="3">มีนาคม</option><option value="4">เมษายน</option>
+            <option value="5">พฤษภาคม</option><option value="6">มิถุนายน</option>
+            <option value="7">กรกฎาคม</option><option value="8">สิงหาคม</option>
+            <option value="9">กันยายน</option><option value="10">ตุลาคม</option>
+            <option value="11">พฤศจิกายน</option><option value="12">ธันวาคม</option>
+          </select>
+        </div>
+        <div class="input-group"><label>สัปดาห์ที่</label>
+          <select id="ap-week"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select>
+        </div>
+      </div>
+      <div class="input-row">
+        <div class="input-group"><label>รหัสนักเรียน</label><input type="text" id="ap-sid" placeholder="เช่น 66001"/></div>
+        <div class="input-group"><label>จำนวนเงิน (฿)</label><input type="number" id="ap-amount" placeholder="20"/></div>
+      </div>
+      <div class="input-group"><label>หมายเหตุ</label><input type="text" id="ap-note" placeholder="ไม่บังคับ"/></div>
+      <button class="btn btn-success" onclick="addPayment()">✅ บันทึก</button>
+    </div>
+    <div class="section-head"><span class="section-title">ประวัติล่าสุด</span></div>
+    <div id="pay-history-admin"></div>
+  </div>
+
+  <!-- PERMS -->
+  <div class="admin-panel" id="ap-perms">
+    <div class="card">
+      <div class="section-head" style="margin-bottom:8px"><span class="section-title">เมนู Guest</span></div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:16px">กำหนดว่านักเรียนห้องอื่น (Guest) ดูอะไรได้บ้าง</p>
+      <div class="toggle-row">
+        <div><div class="t-title">👥 รายชื่อนักเรียน</div><div class="t-sub">แสดงรายชื่อสมาชิกห้อง 4/2</div></div>
+        <label class="toggle"><input type="checkbox" id="perm-class" onchange="savePerms()"/><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div><div class="t-title">💰 ระบบเก็บเงินห้อง</div><div class="t-sub">ดูสถานะการจ่ายเงิน</div></div>
+        <label class="toggle"><input type="checkbox" id="perm-pay" onchange="savePerms()"/><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div><div class="t-title">📋 ประวัติการจ่ายเงิน</div><div class="t-sub">ดูประวัติการทำรายการ</div></div>
+        <label class="toggle"><input type="checkbox" id="perm-history" onchange="savePerms()"/><span class="toggle-slider"></span></label>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ MODALS ════ -->
+
+<!-- Score modal -->
+<div class="modal-overlay" id="scoreModal" onclick="closeModal('scoreModal',event)">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="score-modal-title">รายงานคะแนน</span>
+      <button class="modal-close" onclick="closeModal('scoreModal')">✕</button>
+    </div>
+    <div id="score-modal-tabs" style="display:flex;border-bottom:1px solid var(--border)"></div>
+    <div class="modal-body" id="score-modal-body"><span class="loading-spinner"></span></div>
+  </div>
+</div>
+
+<!-- Student detail modal -->
+<div class="modal-overlay" id="studentModal" onclick="closeModal('studentModal',event)">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">ข้อมูลนักเรียน</span>
+      <button class="modal-close" onclick="closeModal('studentModal')">✕</button>
+    </div>
+    <div class="modal-body" id="student-modal-body"></div>
+  </div>
+</div>
+
+<!-- History modal -->
+<div class="modal-overlay" id="historyModal" onclick="closeModal('historyModal',event)">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">📋 ประวัติการจ่ายเงิน</span>
+      <button class="modal-close" onclick="closeModal('historyModal')">✕</button>
+    </div>
+    <div class="modal-body" id="history-modal-body"><span class="loading-spinner"></span></div>
+  </div>
+</div>
+
+<!-- Edit member modal -->
+<div class="modal-overlay" id="editModal" onclick="closeModal('editModal',event)">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">✏️ แก้ไขข้อมูลสมาชิก</span>
+      <button class="modal-close" onclick="closeModal('editModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-uid"/>
+      <div class="input-group"><label>ชื่อ-นามสกุล</label><input type="text" id="edit-name"/></div>
+      <div class="input-group"><label>เบอร์โทร</label><input type="text" id="edit-tel"/></div>
+      <div class="input-group"><label>ยศ</label>
+        <select id="edit-role"><option value="student">🎓 Student</option><option value="admin">👑 Admin</option></select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('editModal')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveMemberEdit()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ SCRIPT ════ -->
+<script>
+/* ── STATE ── */
+let DB=null,FUNS=null;
+let SESSION=null;
+let CACHED_REPORT=null;
+let MEMBERS={};
+let PAYMENTS={};
+let PERMS={class:false,pay:false,history:false};
+let CUR_PAGE='login';
+let CUR_PAY_WEEK=null;
+const MONTHS=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+
+/* ── FIREBASE INIT ── */
+window.addEventListener('firebase-ready',()=>{
+  FUNS=window.$db; DB=window.$db.db;
+  startListeners();
+  const cached=localStorage.getItem('42hub_sess');
+  if(cached){try{SESSION=JSON.parse(cached);afterLogin(false);}catch(e){localStorage.removeItem('42hub_sess');}}
+});
+
+function startListeners(){
+  if(!DB) return;
+  const{ref,onValue}=FUNS;
+  onValue(ref(DB,'members'),snap=>{
+    MEMBERS=snap.val()||{};
+    renderClassmates();renderPayment();renderMemberAdmin();
+  });
+  onValue(ref(DB,'payments'),snap=>{
+    PAYMENTS=snap.val()||{};
+    renderPayment();renderPayHistoryAdmin();
+  });
+  onValue(ref(DB,'settings/perms'),snap=>{
+    PERMS=snap.val()||{class:false,pay:false,history:false};
+    applyPermsUI();
+  });
+}
+
+/* ── AUTH ── */
+async function doLogin(){
+  const u=document.getElementById('uInput').value.trim();
+  const p=document.getElementById('pInput').value.trim();
+  const al=document.getElementById('loginAlert');
+  al.className='alert-box'; al.style.display='none';
+  if(!u||!p){showAlert(al,'กรุณากรอกข้อมูลให้ครบ');return;}
+
+  const btn=document.getElementById('loginBtn');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>กำลังตรวจสอบ...';
+
+  try{
+    const res=await fetch('/api/scores',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
+    const data=await res.json();
+    if(!data.success){showAlert(al,data.message||'เข้าสู่ระบบไม่สำเร็จ');return;}
+
+    let role='guest', memberData=null;
+    if(DB){
+      const{ref,get}=FUNS;
+      const snap=await get(ref(DB,'members'));
+      const all=snap.val()||{};
+      for(const[uid,m] of Object.entries(all)){
+        if(String(m.studentId)===String(u)){role=m.role||'student';memberData={uid,...m};break;}
+      }
+    }
+
+    SESSION={username:u,password:p,name:data.student||'นักเรียน',role,tel:memberData?.tel||'—',scores:data.scores||{good:'0',bad:'0',total:'0'}};
+    localStorage.setItem('42hub_sess',JSON.stringify(SESSION));
+
+    if(DB && memberData){
+      const{ref,update}=FUNS;
+      update(ref(DB,`members/${memberData.uid}`),{name:SESSION.name,lastLogin:Date.now(),scores:SESSION.scores});
+    }
+    afterLogin(true);
+  }catch(e){showAlert(al,'เชื่อมต่อ Server ไม่ได้: '+e.message);}
+  finally{btn.disabled=false;btn.innerHTML='เข้าสู่ระบบ';}
+}
+
+function afterLogin(fresh){
+  const nb=document.getElementById('navbar'); nb.style.display='flex';
+  const pb=document.getElementById('profileBtn'); pb.style.display='flex';
+  if(SESSION.role==='admin') document.getElementById('nav-admin').style.display='flex';
+  updateProfilePanel(); updateProfileBtn();
+
+  if(fresh){loadHomeScores();goPage('home');}
+  else{
+    const s=SESSION.scores||{};
+    document.getElementById('h-good').textContent=s.good||'—';
+    document.getElementById('h-bad').textContent=s.bad||'—';
+    document.getElementById('h-total').textContent=s.total||'—';
+    document.getElementById('home-name').textContent=SESSION.name||'นักเรียน';
+    document.getElementById('home-role-badge').innerHTML=roleBadge(SESSION.role);
+    document.getElementById('home-loading').style.display='none';
+    document.getElementById('home-content').style.display='block';
+    goPage('home');
+    bgRefreshScores();
+  }
+}
+
+function logout(){
+  SESSION=null;CACHED_REPORT=null;
+  localStorage.removeItem('42hub_sess');
+  document.getElementById('navbar').style.display='none';
+  document.getElementById('profileBtn').style.display='none';
+  document.getElementById('nav-admin').style.display='none';
+  document.getElementById('profilePanel').classList.remove('open');
+  goPage('login');
+}
+
+/* ── HOME/SCORES ── */
+async function loadHomeScores(){
+  document.getElementById('home-loading').style.display='block';
+  document.getElementById('home-content').style.display='none';
+  try{
+    const res=await fetch('/api/scores',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:SESSION.username,password:SESSION.password})});
+    const data=await res.json();
+    if(data.success){SESSION.scores=data.scores;SESSION.name=data.student||SESSION.name;localStorage.setItem('42hub_sess',JSON.stringify(SESSION));updateProfilePanel();updateProfileBtn();}
+  }catch(e){}
+  finally{
+    const s=SESSION.scores||{};
+    document.getElementById('h-good').textContent=s.good||'—';
+    document.getElementById('h-bad').textContent=s.bad||'—';
+    document.getElementById('h-total').textContent=s.total||'—';
+    document.getElementById('home-name').textContent=SESSION.name||'นักเรียน';
+    document.getElementById('home-role-badge').innerHTML=roleBadge(SESSION.role);
+    document.getElementById('home-loading').style.display='none';
+    document.getElementById('home-content').style.display='block';
+  }
+}
+
+async function bgRefreshScores(){
+  try{
+    const res=await fetch('/api/scores',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:SESSION.username,password:SESSION.password})});
+    const data=await res.json();
+    if(data.success){SESSION.scores=data.scores;SESSION.name=data.student||SESSION.name;localStorage.setItem('42hub_sess',JSON.stringify(SESSION));
+      const s=SESSION.scores;
+      document.getElementById('h-good').textContent=s.good||'—';document.getElementById('h-bad').textContent=s.bad||'—';document.getElementById('h-total').textContent=s.total||'—';
+      updateProfilePanel();
+    }
+  }catch(e){}
+}
+
+async function doRefresh(){
+  if(!SESSION)return;
+  const btn=event.target;btn.textContent='⏳...';btn.disabled=true;CACHED_REPORT=null;
+  await loadHomeScores();btn.textContent='🔄 รีเฟรช';btn.disabled=false;
+}
+
+/* ── SCORE MODAL ── */
+let smTab='good';
+async function openScoreModal(mode){
+  smTab=mode==='bad'?'bad':'good';
+  const titles={good:'😇 คะแนนความดี',bad:'😔 รายงานตัดคะแนน',total:'📋 รายงานทั้งหมด'};
+  document.getElementById('score-modal-title').textContent=titles[mode];
+  const tabsEl=document.getElementById('score-modal-tabs');
+  if(mode==='total'){
+    tabsEl.innerHTML=`<button id="stab-good" class="admin-tab active" style="flex:1" onclick="switchSmTab('good')">😇 ความดี</button><button id="stab-bad" class="admin-tab" style="flex:1" onclick="switchSmTab('bad')">😔 ตัดคะแนน</button>`;
+    tabsEl.style.display='flex';
+  }else{tabsEl.style.display='none';}
+  document.getElementById('score-modal-body').innerHTML='<span class="loading-spinner"></span>';
+  openModal('scoreModal');
+
+  if(!CACHED_REPORT){
+    try{
+      const res=await fetch('/api/report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:SESSION.username,password:SESSION.password})});
+      const data=await res.json();
+      if(!data.success){document.getElementById('score-modal-body').innerHTML=`<div class="empty-state">❌ ${data.message}</div>`;return;}
+      CACHED_REPORT=data;
+    }catch(e){document.getElementById('score-modal-body').innerHTML=`<div class="empty-state">❌ ${e.message}</div>`;return;}
+  }
+  renderScoreModal(mode,smTab);
+}
+
+function switchSmTab(tab){
+  smTab=tab;
+  document.getElementById('stab-good').className='admin-tab'+(tab==='good'?' active':'');
+  document.getElementById('stab-bad').className='admin-tab'+(tab==='bad'?' active':'');
+  renderScoreModal('total',tab);
+}
+
+function renderScoreModal(mode,tab){
+  const d=CACHED_REPORT;const t=(mode==='bad')?'bad':tab;
+  document.getElementById('score-modal-body').innerHTML=t==='good'?buildReport('good',d.good):buildReport('bad',d.bad)||'<div class="empty-state">ไม่มีข้อมูล</div>';
+}
+
+function buildReport(type,data){
+  const isG=type==='good';const cls=isG?'g-bg':'r-bg',ico=isG?'😇':'😔',ttl=isG?'คะแนนความดี':'ความประพฤติ';
+  const rows=(data.rows||[]).filter(r=>r.length>=2);
+  if(!rows.length)return`<div class="empty-state">ไม่มีรายการ${ttl}</div>`;
+  const isHdr=rows[0].some(c=>/ที่|รายละเอียด|คะแนน|วันที่/i.test(c));
+  const dr=isHdr?rows.slice(1):rows;
+  let h=`<div class="report-section"><div class="report-head ${cls}"><span class="rh-ico">${ico}</span><span class="rh-ttl">${ttl}</span>${data.total?`<span class="rh-tot">${data.total}</span>`:''}</div><table class="data-tbl"><thead><tr><th style="width:30px">ที่</th><th>รายละเอียด</th><th style="width:60px;text-align:center">คะแนน</th><th style="width:88px">วันที่</th></tr></thead><tbody>`;
+  if(!dr.length)h+=`<tr><td colspan="4" class="empty-state">ไม่มีรายการ</td></tr>`;
+  else dr.forEach((row,i)=>{
+    let num,detail,score,date;
+    if(row.length>=4)[num,detail,score,date]=row;
+    else if(row.length===3){num=i+1;[detail,score,date]=row;}
+    else{num=i+1;detail=row[0];score=row[1]||'';date='';}
+    const val=String(score).trim();const pos=val.startsWith('+')||(!val.startsWith('-')&&Number(val)>0);
+    h+=`<tr><td class="c-muted">${num}</td><td>${detail||''}</td><td style="text-align:center"><span class="chip ${pos?'pos':'neg'}">${val}</span></td><td class="c-muted">${date||''}</td></tr>`;
+  });
+  h+=`</tbody></table></div>`;return h;
+}
+
+/* ── CLASSMATES ── */
+function renderClassmates(){
+  if(!SESSION)return;
+  const content=document.getElementById('class-content');
+  const wall=document.getElementById('class-guest-wall');
+  if(SESSION.role==='guest'&&!PERMS.class){
+    content.style.display='none';wall.style.display='flex';return;
+  }
+  content.style.display='block';wall.style.display='none';
+  const q=(document.getElementById('classSearch')?.value||'').toLowerCase();
+  const arr=Object.entries(MEMBERS);
+  document.getElementById('class-stats').innerHTML=`<div style="display:flex;gap:8px;margin-bottom:4px"><span class="tag" style="background:rgba(34,211,238,.1);color:var(--accent2);border:1px solid rgba(34,211,238,.2)">👥 ${arr.length} คน</span><span class="tag" style="background:rgba(251,191,36,.1);color:var(--gold);border:1px solid rgba(251,191,36,.2)">👑 ${arr.filter(([,m])=>m.role==='admin').length} Admin</span></div>`;
+  if(!arr.length){document.getElementById('class-list').innerHTML='<div class="empty-state">ยังไม่มีข้อมูลสมาชิก<br>Admin ต้องเพิ่มรายชื่อก่อน</div>';return;}
+  const filtered=arr.filter(([,m])=>!q||(m.name||'').toLowerCase().includes(q)||(m.studentId||'').includes(q));
+  document.getElementById('class-list').innerHTML=filtered.map(([uid,m])=>`<div class="student-item" onclick="openStudentModal('${uid}')"><div class="student-avatar">${avatarEmoji(m.name)}</div><div class="student-info"><div class="student-name">${m.name||'—'}</div><div class="student-meta">รหัส ${m.studentId||'—'} · ${m.tel||'—'}</div><div style="margin-top:4px">${roleBadge(m.role,'sm')}</div></div>${m.scores?.good?`<div class="student-score">+${m.scores.good}</div>`:''}</div>`).join('');
+}
+
+function openStudentModal(uid){
+  const m=MEMBERS[uid];if(!m)return;
+  const s=m.scores||{};
+  document.getElementById('student-modal-body').innerHTML=`<div style="text-align:center;padding-bottom:20px;border-bottom:1px solid var(--border)"><div style="font-size:50px;margin-bottom:10px">${avatarEmoji(m.name)}</div><div style="font-size:18px;font-weight:700">${m.name||'—'}</div><div style="font-size:12px;color:var(--text2);margin-top:3px">รหัส ${m.studentId||'—'}</div><div style="margin-top:8px">${roleBadge(m.role)}</div></div><div style="padding-top:16px"><div class="profile-row"><span class="pk">📱 เบอร์โทร</span><span class="pv">${m.tel||'—'}</span></div><div class="profile-row"><span class="pk">😇 ความดี</span><span class="pv" style="color:var(--green)">${s.good||'—'}</span></div><div class="profile-row"><span class="pk">😔 ตัดคะแนน</span><span class="pv" style="color:var(--red)">${s.bad||'—'}</span></div><div class="profile-row"><span class="pk">⭐ สรุปรวม</span><span class="pv" style="color:var(--purple)">${s.total||'—'}</span></div><div class="profile-row"><span class="pk">🕒 ล็อกอินล่าสุด</span><span class="pv" style="font-size:12px">${m.lastLogin?new Date(m.lastLogin).toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}):'—'}</span></div></div>`;
+  openModal('studentModal');
+}
+
+/* ── PAYMENT ── */
+function getWeekKeys(){
+  const wks=new Set();
+  Object.values(PAYMENTS).forEach(p=>wks.add(`${p.year||2568}_${String(p.month||1).padStart(2,'0')}_w${p.week||1}`));
+  if(!wks.size){const now=new Date();wks.add(`${now.getFullYear()+543}_${String(now.getMonth()+1).padStart(2,'0')}_w1`);}
+  return[...wks].sort().reverse();
+}
+
+function renderPayment(){
+  if(!SESSION)return;
+  const content=document.getElementById('pay-content');
+  const wall=document.getElementById('pay-guest-wall');
+  if(SESSION.role==='guest'&&!PERMS.pay){content.style.display='none';wall.style.display='flex';return;}
+  content.style.display='block';wall.style.display='none';
+  const weeks=getWeekKeys();
+  if(!CUR_PAY_WEEK||!weeks.includes(CUR_PAY_WEEK))CUR_PAY_WEEK=weeks[0];
+  document.getElementById('pay-tab-row').innerHTML=weeks.slice(0,6).map(wk=>{
+    const parts=wk.split('_');const mi=parseInt(parts[1])-1;const wn=parts[2].replace('w','');
+    return`<button class="pay-tab ${wk===CUR_PAY_WEEK?'active':''}" onclick="selectPayWeek('${wk}')">${MONTHS[mi]} ส.${wn}</button>`;
+  }).join('');
+  renderPayTable();
+}
+
+function selectPayWeek(wk){CUR_PAY_WEEK=wk;renderPayment();}
+
+function renderPayTable(){
+  if(!CUR_PAY_WEEK)return;
+  const parts=CUR_PAY_WEEK.split('_');const mi=parseInt(parts[1])-1;const wn=parseInt(parts[2].replace('w',''));
+  document.getElementById('pay-sub-title').textContent=`เดือน${MONTHS[mi]} สัปดาห์ที่ ${wn}`;
+  const paidSet=new Set();
+  Object.values(PAYMENTS).forEach(p=>{
+    if(String(p.month)===String(mi+1)&&String(p.week)===String(wn))paidSet.add(String(p.studentId));
+  });
+  const mbs=Object.values(MEMBERS);
+  const pc=mbs.filter(m=>paidSet.has(String(m.studentId))).length;
+  document.getElementById('pay-stats-row').innerHTML=`<div class="stat-card"><div class="stat-val" style="color:var(--green)">${pc}</div><div class="stat-lbl">✅ จ่ายแล้ว</div></div><div class="stat-card"><div class="stat-val" style="color:var(--red)">${mbs.length-pc}</div><div class="stat-lbl">❌ ยังไม่จ่าย</div></div>`;
+  if(!mbs.length){document.getElementById('pay-list').innerHTML='<div class="empty-state">ยังไม่มีสมาชิก</div>';return;}
+  document.getElementById('pay-list').innerHTML=mbs.map(m=>{
+    const paid=paidSet.has(String(m.studentId));
+    return`<div class="pay-row"><div class="student-avatar" style="width:36px;height:36px;font-size:18px;flex-shrink:0">${avatarEmoji(m.name)}</div><div class="pay-name">${m.name||'—'}</div><div class="pay-status ${paid?'paid':'unpaid'}">${paid?'✅ จ่ายแล้ว':'❌ ยังไม่จ่าย'}</div></div>`;
+  }).join('');
+}
+
+/* ── HISTORY ── */
+function openHistoryModal(){openModal('historyModal');renderHistory();}
+function renderHistory(){
+  const el=document.getElementById('history-modal-body');
+  if(SESSION?.role==='guest'&&!PERMS.history){el.innerHTML='<div class="empty-state">🔒 ไม่มีสิทธิ์ดูประวัติ</div>';return;}
+  const arr=Object.entries(PAYMENTS).sort((a,b)=>(b[1].ts||0)-(a[1].ts||0));
+  if(!arr.length){el.innerHTML='<div class="empty-state">📋 ยังไม่มีประวัติ</div>';return;}
+  el.innerHTML=arr.map(([,p])=>`<div class="history-item"><div class="history-icon in">💰</div><div class="history-info"><div class="history-title">${p.studentName||p.studentId} · เดือน${MONTHS[(p.month||1)-1]} ส.${p.week||'?'}</div><div class="history-sub">${p.ts?new Date(p.ts).toLocaleDateString('th-TH',{year:'numeric',month:'short',day:'numeric'}):'—'}${p.note?' · '+p.note:''} · บันทึกโดย ${p.by||'—'}</div></div><div class="history-amt in">+${p.amount||0}฿</div></div>`).join('');
+}
+
+/* ── ADMIN: MEMBERS ── */
+function switchAdminTab(tab){
+  document.querySelectorAll('.admin-tab').forEach((b,i)=>{
+    b.className='admin-tab'+((['members','payment','perms'][i])===tab?' active':'');
+  });
+  ['ap-members','ap-payment','ap-perms'].forEach(id=>document.getElementById(id).className='admin-panel');
+  const map={members:'ap-members',payment:'ap-payment',perms:'ap-perms'};
+  document.getElementById(map[tab]).className='admin-panel active';
+}
+
+async function addMember(){
+  if(!DB||SESSION?.role!=='admin')return;
+  const sid=document.getElementById('am-id').value.trim();
+  const name=document.getElementById('am-name').value.trim();
+  const tel=document.getElementById('am-tel').value.trim();
+  const role=document.getElementById('am-role').value;
+  if(!sid||!name){alert('กรุณากรอกรหัสและชื่อ');return;}
+  const{ref,push,set}=FUNS;
+  await set(push(ref(DB,'members')),{studentId:sid,name,tel,role,createdAt:Date.now()});
+  ['am-id','am-name','am-tel'].forEach(id=>document.getElementById(id).value='');
+}
+
+function renderMemberAdmin(){
+  const list=document.getElementById('member-list');if(!list)return;
+  const arr=Object.entries(MEMBERS);
+  if(!arr.length){list.innerHTML='<div class="empty-state">ยังไม่มีสมาชิก<br>เพิ่มจากฟอร์มด้านบน</div>';return;}
+  list.innerHTML=arr.map(([uid,m])=>`<div class="member-item"><div class="student-avatar" style="width:40px;height:40px;font-size:20px">${avatarEmoji(m.name)}</div><div class="member-info"><div class="member-name">${m.name||'—'}</div><div class="member-id">รหัส ${m.studentId||'—'} · ${roleBadge(m.role,'sm')}</div></div><div class="member-actions"><button class="icon-btn" onclick="openEditModal('${uid}')">✏️</button><button class="icon-btn danger" onclick="deleteMember('${uid}','${(m.name||'').replace(/'/g,"\\'")}')">🗑️</button></div></div>`).join('');
+}
+
+function openEditModal(uid){
+  const m=MEMBERS[uid];if(!m)return;
+  document.getElementById('edit-uid').value=uid;
+  document.getElementById('edit-name').value=m.name||'';
+  document.getElementById('edit-tel').value=m.tel||'';
+  document.getElementById('edit-role').value=m.role||'student';
+  openModal('editModal');
+}
+
+async function saveMemberEdit(){
+  if(!DB)return;
+  const uid=document.getElementById('edit-uid').value;
+  const{ref,update}=FUNS;
+  await update(ref(DB,`members/${uid}`),{
+    name:document.getElementById('edit-name').value.trim(),
+    tel:document.getElementById('edit-tel').value.trim(),
+    role:document.getElementById('edit-role').value
+  });
+  closeModal('editModal');
+}
+
+async function deleteMember(uid,name){
+  if(!confirm(`ลบ "${name}" ออกจากห้อง 4/2 ?\nการกระทำนี้ไม่สามารถย้อนกลับได้`))return;
+  const{ref,remove}=FUNS;await remove(ref(DB,`members/${uid}`));
+}
+
+/* ── ADMIN: PAYMENT ── */
+async function addPayment(){
+  if(!DB||SESSION?.role!=='admin')return;
+  const month=parseInt(document.getElementById('ap-month').value);
+  const week=parseInt(document.getElementById('ap-week').value);
+  const sid=document.getElementById('ap-sid').value.trim();
+  const amount=parseFloat(document.getElementById('ap-amount').value)||0;
+  const note=document.getElementById('ap-note').value.trim();
+  if(!sid||!amount){alert('กรุณากรอกรหัสนักเรียนและจำนวนเงิน');return;}
+  let sName='';
+  Object.values(MEMBERS).forEach(m=>{if(String(m.studentId)===String(sid))sName=m.name;});
+  const{ref,push,set}=FUNS;
+  await set(push(ref(DB,'payments')),{studentId:sid,studentName:sName||sid,month,week,year:new Date().getFullYear()+543,amount,note,by:SESSION.name||SESSION.username,ts:Date.now()});
+  ['ap-sid','ap-amount','ap-note'].forEach(id=>document.getElementById(id).value='');
+}
+
+function renderPayHistoryAdmin(){
+  const el=document.getElementById('pay-history-admin');if(!el)return;
+  const arr=Object.entries(PAYMENTS).sort((a,b)=>(b[1].ts||0)-(a[1].ts||0)).slice(0,10);
+  if(!arr.length){el.innerHTML='<div class="empty-state">ยังไม่มีประวัติ</div>';return;}
+  el.innerHTML=arr.map(([id,p])=>`<div class="history-item"><div class="history-icon in">💰</div><div class="history-info"><div class="history-title">${p.studentName} · ส.${p.week} ${MONTHS[(p.month||1)-1]}</div><div class="history-sub">${p.note||''}</div></div><div style="display:flex;align-items:center;gap:8px"><div class="history-amt in">+${p.amount}฿</div><button class="icon-btn danger" style="width:28px;height:28px;font-size:11px" onclick="deletePayment('${id}')">✕</button></div></div>`).join('');
+}
+
+async function deletePayment(id){
+  if(!confirm('ลบรายการนี้?'))return;
+  const{ref,remove}=FUNS;await remove(ref(DB,`payments/${id}`));
+}
+
+/* ── PERMISSIONS ── */
+function applyPermsUI(){
+  const pc=document.getElementById('perm-class');
+  const pp=document.getElementById('perm-pay');
+  const ph=document.getElementById('perm-history');
+  if(pc)pc.checked=!!PERMS.class;
+  if(pp)pp.checked=!!PERMS.pay;
+  if(ph)ph.checked=!!PERMS.history;
+  if(SESSION){renderClassmates();renderPayment();}
+}
+
+async function savePerms(){
+  if(!DB)return;
+  const{ref,set}=FUNS;
+  PERMS={class:document.getElementById('perm-class').checked,pay:document.getElementById('perm-pay').checked,history:document.getElementById('perm-history').checked};
+  await set(ref(DB,'settings/perms'),PERMS);
+}
+
+/* ── PROFILE ── */
+function toggleProfile(){document.getElementById('profilePanel').classList.toggle('open');}
+function updateProfilePanel(){
+  if(!SESSION)return;
+  document.getElementById('pp-name').textContent=SESSION.name||'—';
+  document.getElementById('pp-id').textContent='รหัส '+SESSION.username;
+  document.getElementById('pp-tel').textContent=SESSION.tel||'—';
+  const s=SESSION.scores||{};
+  document.getElementById('pp-good').textContent=s.good||'—';
+  document.getElementById('pp-bad').textContent=s.bad||'—';
+  document.getElementById('pp-total').textContent=s.total||'—';
+  document.getElementById('pp-role-wrap').innerHTML=roleBadge(SESSION.role);
+  document.getElementById('pp-avatar').textContent=avatarEmoji(SESSION.name);
+  document.getElementById('top-avatar').textContent=avatarEmoji(SESSION.name);
+}
+function updateProfileBtn(){
+  if(!SESSION)return;
+  document.getElementById('profileBtnName').textContent=(SESSION.name||'').split(' ')[0]||SESSION.username;
+}
+
+/* ── NAVIGATION ── */
+function goPage(pg){
+  document.getElementById('profilePanel').classList.remove('open');
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(`page-${pg}`).classList.add('active');
+  const nb=document.getElementById(`nav-${pg}`);if(nb)nb.classList.add('active');
+  CUR_PAGE=pg;
+  if(pg==='class')renderClassmates();
+  if(pg==='pay')renderPayment();
+  if(pg==='admin'){renderMemberAdmin();renderPayHistoryAdmin();}
+}
+
+/* ── MODAL ── */
+function openModal(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
+function closeModal(id,e){
+  if(e&&e.target!==document.getElementById(id))return;
+  document.getElementById(id).classList.remove('open');document.body.style.overflow='';
+}
+
+/* ── UTILS ── */
+function roleBadge(role){
+  const m={admin:'<span class="role-badge role-admin">👑 Admin</span>',student:'<span class="role-badge role-student">🎓 Student</span>',guest:'<span class="role-badge role-guest">👤 Guest</span>'};
+  return m[role]||m.guest;
+}
+function avatarEmoji(name=''){
+  const e=['👨‍🎓','👩‍🎓','🧑‍🎓','😎','🤓','🙂','😊','🤩'];
+  let h=0;for(const c of name)h=(h*31+c.charCodeAt(0))&0xffff;
+  return e[h%e.length];
+}
+function showAlert(el,msg){el.textContent='⚠️ '+msg;el.className='alert-box show';el.style.display='block';}
+
+/* ── THEME ── */
+(function(){
+  const s=localStorage.getItem('42hub_theme')||'dark';
+  document.documentElement.dataset.theme=s;
+  document.getElementById('themeBtn').textContent=s==='dark'?'🌙':'☀️';
+})();
+document.getElementById('themeBtn').addEventListener('click',()=>{
+  const n=document.documentElement.dataset.theme==='dark'?'light':'dark';
+  document.documentElement.dataset.theme=n;
+  localStorage.setItem('42hub_theme',n);
+  document.getElementById('themeBtn').textContent=n==='dark'?'🌙':'☀️';
+});
+
+/* ── KEYBOARD ── */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    ['scoreModal','studentModal','historyModal','editModal'].forEach(id=>document.getElementById(id).classList.remove('open'));
+    document.getElementById('profilePanel').classList.remove('open');
+    document.body.style.overflow='';
+  }
+  if(e.key==='Enter'&&CUR_PAGE==='login')doLogin();
+});
+document.addEventListener('click',e=>{
+  const panel=document.getElementById('profilePanel');
+  const btn=document.getElementById('profileBtn');
+  if(panel.classList.contains('open')&&!panel.contains(e.target)&&!btn.contains(e.target))panel.classList.remove('open');
+});
+
+// set current month in admin form
+(()=>{const s=document.getElementById('ap-month');if(s)s.value=new Date().getMonth()+1;})();
+</script>
+</body>
+</html>
