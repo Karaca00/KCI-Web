@@ -1,15 +1,15 @@
 /**
- * 4/2 Hub — Backend Proxy Server
+ * 4/2 Hub — Backend Proxy Server (Revised)
  * Node.js + Express
  *
  * Endpoints:
- *   POST /api/scores   — Login + ดึงคะแนน + ชื่อ + เบอร์
- *   POST /api/report   — ดึงรายงานละเอียด (ความดี / ตัดคะแนน)
- *   GET  /api/health   — Health check
+ * POST /api/scores   — Login + ดึงคะแนน + ชื่อ + เบอร์
+ * POST /api/report   — ดึงรายงานละเอียด (ความดี / ตัดคะแนน)
+ * GET  /api/health   — Health check
  *
  * Session Cookie Cache:
- *   เก็บ cookie ไว้ใน memory (sessionCache) เพื่อไม่ต้อง login ซ้ำทุก request
- *   TTL = 25 นาที (session โรงเรียนมักหมดที่ 30 นาที)
+ * เก็บ cookie ไว้ใน memory (sessionCache) เพื่อไม่ต้อง login ซ้ำทุก request
+ * TTL = 25 นาที (session โรงเรียนมักหมดที่ 30 นาที)
  */
 
 'use strict';
@@ -202,7 +202,6 @@ app.post('/api/scores', async (req, res) => {
     const $ = cheerio.load(html);
 
     /* ── Scores ── */
-    // Try multiple selectors — KCI may change layout
     const tryText = (...selectors) => {
       for (const s of selectors) {
         const t = $(s).first().text().trim();
@@ -240,8 +239,6 @@ app.post('/api/scores', async (req, res) => {
 
     return res.json({
       success: true,
-      verified: true,
-      studentId: username,
       student: studentName || null,
       tel:     tel || null,
       scores: {
@@ -340,18 +337,6 @@ app.get('/api/health', (_, res) => {
     uptime:   process.uptime(),
     sessions: sessionCache.size,
     time:     new Date().toISOString(),
-    proxy:    BASE_URL,
-  });
-});
-
-/* ──────────────────────────────────────────
-   API: GET /api/meta
-────────────────────────────────────────── */
-app.get('/api/meta', (_, res) => {
-  res.json({
-    name: '4/2 Hub Proxy',
-    proxy: BASE_URL,
-    sessionTTLMinutes: SESSION_TTL / 60000,
   });
 });
 
