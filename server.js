@@ -240,6 +240,8 @@ app.post('/api/scores', async (req, res) => {
 
     return res.json({
       success: true,
+      verified: true,
+      studentId: username,
       student: studentName || null,
       tel:     tel || null,
       scores: {
@@ -338,6 +340,18 @@ app.get('/api/health', (_, res) => {
     uptime:   process.uptime(),
     sessions: sessionCache.size,
     time:     new Date().toISOString(),
+    proxy:    BASE_URL,
+  });
+});
+
+/* ──────────────────────────────────────────
+   API: GET /api/meta
+────────────────────────────────────────── */
+app.get('/api/meta', (_, res) => {
+  res.json({
+    name: '4/2 Hub Proxy',
+    proxy: BASE_URL,
+    sessionTTLMinutes: SESSION_TTL / 60000,
   });
 });
 
