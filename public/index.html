@@ -219,6 +219,34 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 .toggle input:checked+.toggle-slider{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent}
 .toggle input:checked+.toggle-slider::after{transform:translate(20px,-50%);background:#fff}
 
+/* ── TERMINAL / DB COMMAND ── */
+.terminal{background:#050810;border:1px solid rgba(34,211,238,.25);border-radius:var(--r-sm);overflow:hidden;font-family:'Courier New',monospace}
+.terminal-header{background:rgba(34,211,238,.06);padding:10px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(34,211,238,.15)}
+.term-dot{width:10px;height:10px;border-radius:50%}
+.term-dot.r{background:#ff5f57}.term-dot.y{background:#febc2e}.term-dot.g{background:#28c840}
+.term-label{font-size:11px;color:rgba(34,211,238,.6);letter-spacing:1px;margin-left:4px;font-family:inherit}
+.terminal-output{min-height:200px;max-height:340px;overflow-y:auto;padding:14px;font-size:12px;line-height:1.7;color:#94a3b8}
+.terminal-output::-webkit-scrollbar{width:4px}
+.terminal-output::-webkit-scrollbar-thumb{background:rgba(34,211,238,.2);border-radius:4px}
+.term-line{display:flex;gap:8px;margin-bottom:2px}
+.term-prompt{color:rgba(34,211,238,.5);flex-shrink:0}
+.term-cmd{color:#e2e8f0}
+.term-ok{color:#34d399}
+.term-err{color:#f87171}
+.term-info{color:#818cf8}
+.term-data{color:#fbbf24;font-size:11px;white-space:pre-wrap;word-break:break-all}
+.terminal-input-row{display:flex;align-items:center;gap:0;border-top:1px solid rgba(34,211,238,.15);background:#050810}
+.term-prefix{padding:11px 10px 11px 14px;color:rgba(34,211,238,.6);font-family:'Courier New',monospace;font-size:13px;flex-shrink:0}
+.term-input{flex:1;background:none;border:none;outline:none;font-family:'Courier New',monospace;font-size:13px;color:#e2e8f0;padding:11px 0}
+.term-input::placeholder{color:rgba(148,163,184,.3)}
+.term-run{padding:10px 16px;background:rgba(34,211,238,.1);border:none;border-left:1px solid rgba(34,211,238,.15);color:var(--accent2);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .2s}
+.term-run:hover{background:rgba(34,211,238,.2)}
+.cmd-help-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.cmd-chip{background:rgba(129,140,248,.08);border:1px solid rgba(129,140,248,.15);border-radius:6px;padding:6px 10px;font-size:11px;cursor:pointer;transition:all .2s;font-family:'Courier New',monospace}
+.cmd-chip:hover{background:rgba(129,140,248,.18);border-color:rgba(129,140,248,.35)}
+.cmd-chip .cc-cmd{color:var(--accent2)}
+.cmd-chip .cc-desc{color:var(--muted);display:block;margin-top:2px;font-family:'Noto Sans Thai',sans-serif;font-size:10px}
+
 /* ── MODAL ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:200;display:flex;align-items:flex-end;justify-content:center;padding:0 0 0;opacity:0;pointer-events:none;transition:opacity .25s}
 @media(min-width:500px){.modal-overlay{align-items:center;padding:16px}}
@@ -454,6 +482,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
     <button class="admin-tab active" onclick="switchAdminTab('members')">👥 สมาชิก</button>
     <button class="admin-tab" onclick="switchAdminTab('payment')">💰 เงินห้อง</button>
     <button class="admin-tab" onclick="switchAdminTab('perms')">🔒 สิทธิ์</button>
+    <button class="admin-tab" onclick="switchAdminTab('cmd')">💻 คำสั่ง</button>
   </div>
 
   <!-- MEMBERS -->
@@ -520,6 +549,43 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
       <div class="toggle-row">
         <div><div class="t-title">📋 ประวัติการจ่ายเงิน</div><div class="t-sub">ดูประวัติการทำรายการ</div></div>
         <label class="toggle"><input type="checkbox" id="perm-history" onchange="savePerms()"/><span class="toggle-slider"></span></label>
+      </div>
+    </div>
+  </div>
+
+  <!-- CMD TERMINAL -->
+  <div class="admin-panel" id="ap-cmd">
+    <div class="card" style="margin-bottom:14px">
+      <div class="section-head" style="margin-bottom:6px"><span class="section-title">💻 Firebase Terminal</span></div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:14px">พิมพ์คำสั่งเพื่อจัดการ Database โดยตรง</p>
+      <div class="cmd-help-grid" id="cmd-shortcuts">
+        <div class="cmd-chip" onclick="fillCmd('list members')"><span class="cc-cmd">list members</span><span class="cc-desc">แสดงสมาชิกทั้งหมด</span></div>
+        <div class="cmd-chip" onclick="fillCmd('list payments')"><span class="cc-cmd">list payments</span><span class="cc-desc">แสดงประวัติเงินทั้งหมด</span></div>
+        <div class="cmd-chip" onclick="fillCmd('setrole [id] student')"><span class="cc-cmd">setrole [id] student</span><span class="cc-desc">เปลี่ยนยศเป็น Student</span></div>
+        <div class="cmd-chip" onclick="fillCmd('setrole [id] admin')"><span class="cc-cmd">setrole [id] admin</span><span class="cc-desc">เปลี่ยนยศเป็น Admin</span></div>
+        <div class="cmd-chip" onclick="fillCmd('setrole [id] guest')"><span class="cc-cmd">setrole [id] guest</span><span class="cc-desc">เปลี่ยนยศเป็น Guest</span></div>
+        <div class="cmd-chip" onclick="fillCmd('get members')"><span class="cc-cmd">get members</span><span class="cc-desc">ดูข้อมูลดิบใน DB</span></div>
+        <div class="cmd-chip" onclick="fillCmd('get settings')"><span class="cc-cmd">get settings</span><span class="cc-desc">ดูการตั้งค่า</span></div>
+        <div class="cmd-chip" onclick="fillCmd('clear payments')"><span class="cc-cmd">clear payments</span><span class="cc-desc">ลบประวัติเงินทั้งหมด</span></div>
+        <div class="cmd-chip" onclick="fillCmd('delete members/[uid]')"><span class="cc-cmd">delete members/[uid]</span><span class="cc-desc">ลบสมาชิกด้วย UID</span></div>
+        <div class="cmd-chip" onclick="fillCmd('set settings/perms/class true')"><span class="cc-cmd">set [path] [value]</span><span class="cc-desc">ตั้งค่าข้อมูลที่ path</span></div>
+        <div class="cmd-chip" onclick="fillCmd('update members/[uid] {\"role\":\"admin\"}')"><span class="cc-cmd">update [path] {json}</span><span class="cc-desc">อัปเดตข้อมูล</span></div>
+        <div class="cmd-chip" onclick="fillCmd('help')"><span class="cc-cmd">help</span><span class="cc-desc">ดูคำสั่งทั้งหมด</span></div>
+      </div>
+    </div>
+    <div class="terminal">
+      <div class="terminal-header">
+        <div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div>
+        <span class="term-label">4/2 HUB · FIREBASE TERMINAL</span>
+      </div>
+      <div class="terminal-output" id="term-output">
+        <div class="term-line"><span class="term-info">🔥 Firebase Terminal พร้อมใช้งาน</span></div>
+        <div class="term-line"><span class="term-info">พิมพ์ <span style="color:var(--accent2)">help</span> เพื่อดูคำสั่งทั้งหมด</span></div>
+      </div>
+      <div class="terminal-input-row">
+        <span class="term-prefix">4/2 $</span>
+        <input class="term-input" id="term-input" type="text" placeholder="พิมพ์คำสั่ง..." autocomplete="off" autocorrect="off" spellcheck="false" onkeydown="if(event.key==='Enter')runDbCommand()"/>
+        <button class="term-run" onclick="runDbCommand()">▶ RUN</button>
       </div>
     </div>
   </div>
@@ -633,40 +699,100 @@ async function doLogin(){
   btn.disabled=true; btn.innerHTML='<span class="spinner"></span>กำลังตรวจสอบ...';
 
   try{
+    // ── 1. ยิง KCI API ──
     const res=await fetch('/api/scores',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
     const data=await res.json();
     if(!data.success){showAlert(al,data.message||'เข้าสู่ระบบไม่สำเร็จ');return;}
 
-    let role='guest', memberData=null;
+    // ── 2. ตรวจสอบ Firebase ว่ามี record อยู่ไหม ──
+    let role='guest', memberData=null, memberUid=null;
     if(DB){
       const{ref,get}=FUNS;
       const snap=await get(ref(DB,'members'));
       const all=snap.val()||{};
       for(const[uid,m] of Object.entries(all)){
-        if(String(m.studentId)===String(u)){role=m.role||'student';memberData={uid,...m};break;}
+        if(String(m.studentId)===String(u)){
+          role=m.role||'guest';
+          memberData=m;
+          memberUid=uid;
+          break;
+        }
       }
     }
 
-    SESSION={username:u,password:p,name:data.student||'นักเรียน',role,tel:memberData?.tel||'—',scores:data.scores||{good:'0',bad:'0',total:'0'}};
+    // ── 3. สร้าง SESSION ──
+    SESSION={
+      username:u, password:p,
+      name:data.student||memberData?.name||'นักเรียน',
+      role,
+      tel:data.tel||memberData?.tel||'—',
+      scores:data.scores||{good:'0',bad:'0',total:'0'}
+    };
     localStorage.setItem('42hub_sess',JSON.stringify(SESSION));
 
-    if(DB && memberData){
-      const{ref,update}=FUNS;
-      update(ref(DB,`members/${memberData.uid}`),{name:SESSION.name,lastLogin:Date.now(),scores:SESSION.scores});
+    // ── 4. Sync ข้อมูลลง Firebase ──
+    if(DB){
+      const{ref,set,update,push}=FUNS;
+      const now=Date.now();
+      const freshData={
+        name:SESSION.name,
+        tel:SESSION.tel,
+        scores:SESSION.scores,
+        lastLogin:now
+      };
+
+      if(!memberUid){
+        // ยังไม่มีใน DB → สร้างใหม่ด้วย role=guest
+        const newRef=push(ref(DB,'members'));
+        memberUid=newRef.key;
+        await set(newRef,{
+          studentId:u,
+          name:SESSION.name,
+          tel:SESSION.tel,
+          role:'guest',          // เริ่มต้นเป็น guest เสมอ
+          scores:SESSION.scores,
+          createdAt:now,
+          lastLogin:now
+        });
+        termLog('info',`✨ สร้างข้อมูลใหม่ใน DB (role=guest) สำหรับ ${SESSION.name}`);
+      } else if(role==='student'||role==='admin'){
+        // มีอยู่แล้ว + เป็น student/admin → อัปเดตข้อมูลทุกอย่างเต็ม
+        await update(ref(DB,`members/${memberUid}`),freshData);
+        termLog('ok',`🔄 อัปเดตข้อมูล ${SESSION.name} (${role}) ลงใน DB แล้ว`);
+      } else {
+        // guest ที่มีอยู่แล้ว → อัปเดตแค่ lastLogin
+        await update(ref(DB,`members/${memberUid}`),{lastLogin:now});
+      }
     }
+
     afterLogin(true);
   }catch(e){showAlert(al,'เชื่อมต่อ Server ไม่ได้: '+e.message);}
   finally{btn.disabled=false;btn.innerHTML='เข้าสู่ระบบ';}
 }
 
 function afterLogin(fresh){
-  const nb=document.getElementById('navbar'); nb.style.display='flex';
-  const pb=document.getElementById('profileBtn'); pb.style.display='flex';
-  if(SESSION.role==='admin') document.getElementById('nav-admin').style.display='flex';
-  updateProfilePanel(); updateProfileBtn();
+  // ── ซ่อนหน้า Login ออกจาก DOM flow ──
+  const loginPage=document.getElementById('page-login');
+  loginPage.classList.remove('active');
+  loginPage.style.display='none';
 
-  if(fresh){loadHomeScores();goPage('home');}
-  else{
+  // ── แสดง Navbar + Profile button ──
+  document.getElementById('navbar').style.display='flex';
+  const pb=document.getElementById('profileBtn');
+  pb.style.display='flex';
+
+  // ── แสดงปุ่ม Admin ถ้าเป็น admin ──
+  if(SESSION.role==='admin'){
+    document.getElementById('nav-admin').style.display='flex';
+  }
+
+  updateProfilePanel();
+  updateProfileBtn();
+
+  if(fresh){
+    loadHomeScores();
+    goPage('home');
+  } else {
     const s=SESSION.scores||{};
     document.getElementById('h-good').textContent=s.good||'—';
     document.getElementById('h-bad').textContent=s.bad||'—';
@@ -681,13 +807,27 @@ function afterLogin(fresh){
 }
 
 function logout(){
-  SESSION=null;CACHED_REPORT=null;
+  SESSION=null; CACHED_REPORT=null;
   localStorage.removeItem('42hub_sess');
+
+  // ซ่อน navbar + profile btn
   document.getElementById('navbar').style.display='none';
   document.getElementById('profileBtn').style.display='none';
   document.getElementById('nav-admin').style.display='none';
   document.getElementById('profilePanel').classList.remove('open');
-  goPage('login');
+
+  // คืนหน้า Login กลับ
+  document.querySelectorAll('.page').forEach(p=>{p.classList.remove('active');p.style.display='';});
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const loginPage=document.getElementById('page-login');
+  loginPage.style.display='';
+  loginPage.classList.add('active');
+  CUR_PAGE='login';
+
+  // เคลียร์ input
+  document.getElementById('uInput').value='';
+  document.getElementById('pInput').value='';
+  document.getElementById('loginAlert').style.display='none';
 }
 
 /* ── HOME/SCORES ── */
@@ -864,11 +1004,12 @@ function renderHistory(){
 
 /* ── ADMIN: MEMBERS ── */
 function switchAdminTab(tab){
+  const tabNames=['members','payment','perms','cmd'];
   document.querySelectorAll('.admin-tab').forEach((b,i)=>{
-    b.className='admin-tab'+((['members','payment','perms'][i])===tab?' active':'');
+    b.className='admin-tab'+(tabNames[i]===tab?' active':'');
   });
-  ['ap-members','ap-payment','ap-perms'].forEach(id=>document.getElementById(id).className='admin-panel');
-  const map={members:'ap-members',payment:'ap-payment',perms:'ap-perms'};
+  ['ap-members','ap-payment','ap-perms','ap-cmd'].forEach(id=>document.getElementById(id).className='admin-panel');
+  const map={members:'ap-members',payment:'ap-payment',perms:'ap-perms',cmd:'ap-cmd'};
   document.getElementById(map[tab]).className='admin-panel active';
 }
 
@@ -1045,6 +1186,205 @@ document.addEventListener('click',e=>{
 
 // set current month in admin form
 (()=>{const s=document.getElementById('ap-month');if(s)s.value=new Date().getMonth()+1;})();
+
+/* ── TERMINAL / DB COMMANDS ── */
+const TERM_HISTORY=[];let TERM_HI=-1;
+
+function termLog(type,msg,data){
+  const out=document.getElementById('term-output');if(!out)return;
+  const line=document.createElement('div');line.className='term-line';
+  const icon={ok:'✅',err:'❌',info:'ℹ️',cmd:'>',data:'📦'}[type]||'•';
+  const cls={ok:'term-ok',err:'term-err',info:'term-info',cmd:'term-cmd',data:'term-data'}[type]||'';
+  if(type==='data'){
+    line.innerHTML=`<span class="term-data">${escapeHtml(typeof data==='string'?data:JSON.stringify(data,null,2))}</span>`;
+  } else {
+    line.innerHTML=`<span class="${cls}">${icon} ${escapeHtml(String(msg))}</span>`;
+  }
+  out.appendChild(line);
+  out.scrollTop=out.scrollHeight;
+}
+
+function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function fillCmd(cmd){
+  const inp=document.getElementById('term-input');if(!inp)return;
+  inp.value=cmd;inp.focus();
+  // select placeholder-like part
+  const bi=cmd.indexOf('[');const ei=cmd.indexOf(']');
+  if(bi>-1)inp.setSelectionRange(bi,ei+1);
+}
+
+document.addEventListener('keydown',ev=>{
+  const inp=document.getElementById('term-input');
+  if(document.activeElement!==inp)return;
+  if(ev.key==='ArrowUp'){ev.preventDefault();if(TERM_HI<TERM_HISTORY.length-1){TERM_HI++;inp.value=TERM_HISTORY[TERM_HI]||'';}}
+  if(ev.key==='ArrowDown'){ev.preventDefault();if(TERM_HI>0){TERM_HI--;inp.value=TERM_HISTORY[TERM_HI]||'';}else{TERM_HI=-1;inp.value='';}}
+});
+
+async function runDbCommand(){
+  if(!DB||SESSION?.role!=='admin'){termLog('err','ต้องเป็น Admin เท่านั้น');return;}
+  const inp=document.getElementById('term-input');
+  const raw=(inp?.value||'').trim();
+  if(!raw)return;
+
+  // history
+  TERM_HISTORY.unshift(raw);if(TERM_HISTORY.length>50)TERM_HISTORY.pop();TERM_HI=-1;
+  inp.value='';
+
+  termLog('cmd','$ '+raw);
+  const parts=raw.split(/\s+/);
+  const cmd=parts[0].toLowerCase();
+
+  const{ref,get,set,update,remove,push}=FUNS;
+
+  try{
+    // ── help ──
+    if(cmd==='help'){
+      termLog('info','คำสั่งทั้งหมด:');
+      const cmds=[
+        ['list members','แสดงสมาชิกทั้งหมดแบบตาราง'],
+        ['list payments','แสดงประวัติเงินทั้งหมด'],
+        ['get <path>','ดูข้อมูลดิบที่ path เช่น get members'],
+        ['set <path> <value>','ตั้งค่าข้อมูล เช่น set settings/perms/class true'],
+        ['update <path> <json>','อัปเดต เช่น update members/uid {"role":"admin"}'],
+        ['delete <path>','ลบข้อมูลที่ path เช่น delete members/uid'],
+        ['setrole <studentId> <role>','เปลี่ยนยศ เช่น setrole 66001 admin'],
+        ['clear payments','ลบประวัติเงินทั้งหมด'],
+        ['clear members','ลบสมาชิกทั้งหมด ⚠️'],
+        ['whoami','ดูข้อมูลตัวเอง'],
+        ['count members','นับจำนวนสมาชิก'],
+        ['count payments','นับจำนวนรายการเงิน'],
+      ];
+      cmds.forEach(([c,d])=>termLog('data',null,`  ${c.padEnd(32)} — ${d}`));
+      return;
+    }
+
+    // ── whoami ──
+    if(cmd==='whoami'){
+      termLog('ok',`${SESSION.name} (${SESSION.username}) · role=${SESSION.role}`);
+      termLog('data',null,JSON.stringify(SESSION.scores,null,2));
+      return;
+    }
+
+    // ── count ──
+    if(cmd==='count'){
+      const target=parts[1]||'members';
+      const snap=await get(ref(DB,target));
+      const d=snap.val()||{};
+      termLog('ok',`${target}: ${Object.keys(d).length} รายการ`);
+      return;
+    }
+
+    // ── list members ──
+    if(cmd==='list'&&parts[1]==='members'){
+      const snap=await get(ref(DB,'members'));
+      const d=snap.val()||{};
+      const arr=Object.entries(d);
+      if(!arr.length){termLog('info','ยังไม่มีสมาชิก');return;}
+      termLog('ok',`พบ ${arr.length} สมาชิก:`);
+      arr.forEach(([uid,m])=>{
+        termLog('data',null,`[${m.role?.padEnd(7)||'guest  '}] ${(m.name||'—').padEnd(24)} รหัส:${m.studentId||'—'} uid:${uid}`);
+      });
+      return;
+    }
+
+    // ── list payments ──
+    if(cmd==='list'&&parts[1]==='payments'){
+      const snap=await get(ref(DB,'payments'));
+      const d=snap.val()||{};
+      const arr=Object.entries(d).sort((a,b)=>(b[1].ts||0)-(a[1].ts||0));
+      if(!arr.length){termLog('info','ยังไม่มีประวัติเงิน');return;}
+      termLog('ok',`พบ ${arr.length} รายการ:`);
+      arr.forEach(([id,p])=>{
+        const dt=p.ts?new Date(p.ts).toLocaleDateString('th-TH'):'—';
+        termLog('data',null,`${dt} | ${(p.studentName||p.studentId||'—').padEnd(20)} | เดือน${p.month} ส.${p.week} | ${p.amount}฿ | id:${id}`);
+      });
+      return;
+    }
+
+    // ── get <path> ──
+    if(cmd==='get'){
+      const path=parts[1];if(!path){termLog('err','ระบุ path ด้วย เช่น: get members');return;}
+      const snap=await get(ref(DB,path));
+      if(!snap.exists()){termLog('info',`ไม่มีข้อมูลที่ ${path}`);return;}
+      termLog('ok',`ข้อมูลที่ ${path}:`);
+      termLog('data',null,JSON.stringify(snap.val(),null,2));
+      return;
+    }
+
+    // ── setrole <studentId> <role> ──
+    if(cmd==='setrole'){
+      const sid=parts[1],newRole=parts[2];
+      if(!sid||!newRole){termLog('err','ใช้: setrole [studentId] [admin|student|guest]');return;}
+      if(!['admin','student','guest'].includes(newRole)){termLog('err','role ต้องเป็น admin, student, หรือ guest');return;}
+      const snap=await get(ref(DB,'members'));
+      const all=snap.val()||{};
+      let found=false;
+      for(const[uid,m] of Object.entries(all)){
+        if(String(m.studentId)===String(sid)){
+          await update(ref(DB,`members/${uid}`),{role:newRole});
+          termLog('ok',`เปลี่ยนยศ ${m.name||sid} → ${newRole} สำเร็จ`);
+          found=true;break;
+        }
+      }
+      if(!found)termLog('err',`ไม่พบรหัส ${sid} ใน DB`);
+      return;
+    }
+
+    // ── set <path> <value> ──
+    if(cmd==='set'){
+      const path=parts[1];if(!path){termLog('err','ระบุ path และ value');return;}
+      const valStr=parts.slice(2).join(' ');
+      let val;
+      try{val=JSON.parse(valStr);}catch{val=valStr==='true'?true:valStr==='false'?false:isNaN(valStr)?valStr:Number(valStr);}
+      await set(ref(DB,path),val);
+      termLog('ok',`set ${path} = ${JSON.stringify(val)} สำเร็จ`);
+      return;
+    }
+
+    // ── update <path> <json> ──
+    if(cmd==='update'){
+      const path=parts[1];if(!path){termLog('err','ระบุ path และ json');return;}
+      const jsonStr=parts.slice(2).join(' ');
+      let obj;
+      try{obj=JSON.parse(jsonStr);}catch{termLog('err','JSON ไม่ถูกต้อง: '+jsonStr);return;}
+      await update(ref(DB,path),obj);
+      termLog('ok',`update ${path} สำเร็จ`);
+      return;
+    }
+
+    // ── delete <path> ──
+    if(cmd==='delete'){
+      const path=parts[1];if(!path){termLog('err','ระบุ path เช่น: delete members/uid');return;}
+      if(!confirm(`⚠️ ยืนยันลบข้อมูลที่ "${path}" ?`)){termLog('info','ยกเลิก');return;}
+      await remove(ref(DB,path));
+      termLog('ok',`ลบ ${path} สำเร็จ`);
+      return;
+    }
+
+    // ── clear payments ──
+    if(cmd==='clear'&&parts[1]==='payments'){
+      if(!confirm('⚠️ ยืนยันลบประวัติเงินทั้งหมด? ไม่สามารถย้อนกลับได้')){termLog('info','ยกเลิก');return;}
+      await remove(ref(DB,'payments'));
+      termLog('ok','ลบประวัติเงินทั้งหมดสำเร็จ');
+      return;
+    }
+
+    // ── clear members ──
+    if(cmd==='clear'&&parts[1]==='members'){
+      if(!confirm('⚠️⚠️ ยืนยันลบสมาชิกทั้งหมด? ข้อมูลจะหายหมด!')){termLog('info','ยกเลิก');return;}
+      await remove(ref(DB,'members'));
+      termLog('ok','ลบสมาชิกทั้งหมดสำเร็จ');
+      return;
+    }
+
+    // ── ไม่รู้จักคำสั่ง ──
+    termLog('err',`ไม่รู้จักคำสั่ง "${cmd}" — พิมพ์ help เพื่อดูคำสั่งทั้งหมด`);
+
+  }catch(e){
+    termLog('err','เกิดข้อผิดพลาด: '+e.message);
+  }
+}
 </script>
 </body>
 </html>
