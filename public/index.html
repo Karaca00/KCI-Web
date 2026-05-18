@@ -15,14 +15,15 @@ import{getDatabase,ref,set,get,update,push,onValue,remove}
 
 // ⚠️ แทนที่ด้วย Firebase config ของคุณ
 const cfg={
-  apiKey:"YOUR_API_KEY",
-  authDomain:"YOUR_PROJECT.firebaseapp.com",
-  databaseURL:"https://YOUR_PROJECT-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId:"YOUR_PROJECT",
-  storageBucket:"YOUR_PROJECT.appspot.com",
-  messagingSenderId:"YOUR_SENDER_ID",
-  appId:"YOUR_APP_ID"
+  apiKey:"AIzaSyCcRBwQB1-qxydI-gP4KgHUm24ihhSDyPY",
+  authDomain:"kci-web.firebaseapp.com",
+  databaseURL:"https://kci-web-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"kci-web",
+  storageBucket:"kci-web.firebasestorage.app",
+  messagingSenderId:"587340442253",
+  appId:"1:587340442253:web:48e1d8d905117f613710c4"
 };
+
 const fbApp=initializeApp(cfg);
 const db=getDatabase(fbApp);
 window.$db={db,ref,set,get,update,push,onValue,remove};
